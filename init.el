@@ -68,7 +68,7 @@
 ;(require 'init-erlang)
 ;(require 'init-javascript)
 ;(require 'init-php)
-;;(require 'init-org)
+(require 'init-org)
 ;(require 'init-nxml)
 ;(require 'init-css)
 ;(require 'init-haml)
@@ -94,6 +94,7 @@
 ;(require 'init-ledger)
 ;; Extra packages which don't require any configuration
 
+(require-package 'graphviz-dot-mode)
 ;(require-package 'gnuplot)
 ;(require-package 'lua-mode)
 ;(require-package 'htmlize)
