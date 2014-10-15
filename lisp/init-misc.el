@@ -20,4 +20,7 @@
 mouse-wheel-progressive-speed nil
 scroll-step 1)
 
+;取消光标闪烁
+(blink-cursor-mode -1)
+
 (provide 'init-misc)
