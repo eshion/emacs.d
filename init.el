@@ -41,7 +41,8 @@
 ;;(require 'init-isearch)
 ;;(require 'init-uniquify)
 ;;(require 'init-ibuffer)
-;;(require 'init-flycheck)
+(require 'init-flycheck)
+(require 'init-web-mode)
 ;;
 (require 'init-recentf)
 (require 'init-ido)
