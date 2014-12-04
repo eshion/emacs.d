@@ -17,7 +17,8 @@
 (setq org-refile-use-outline-path (quote file))
 ;; Targets complete in steps so we start with filename, TAB shows the next level of targets etc
 (setq org-outline-path-complete-in-steps t)
-
+;; 不转义 _ 字符
+(setq org-export-with-sub-superscripts '{})
 
 (setq org-todo-keywords
       (quote ((sequence "TODO(t)" "STARTED(s)" "|" "DONE(d!/!)")
@@ -44,6 +45,9 @@
    (plantuml . t)
    (dot . t)
    ))
+
+(add-to-list 'org-structure-template-alist
+             '("dot" "#+BEGIN_SRC dot :file file_?.png :cmdline -Kdot -Tpng\n?\n#+END_SRC"))
 
 (setq org-confirm-babel-evaluate nil)
 
