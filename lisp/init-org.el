@@ -62,4 +62,26 @@
       (org-display-inline-images)
     (error nil)))
 
+
+;; 中英文对齐设置,先设置默认字体height:120
+(if (and (fboundp 'daemonp) (daemonp))
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                (with-selected-frame frame
+                  (set-fontset-font "fontset-default"
+                                    'chinese-gbk "WenQuanYi Micro Hei Mono 15"))))
+  (set-fontset-font "fontset-default" 'chinese-gbk "WenQuanYi Micro Hei Mono 15"))
+
+
+(defun wl-org-column-view-uses-fixed-width-face ()
+  ;; copy from org-faces.el
+  (when (fboundp 'set-face-attribute)
+    ;; Make sure that a fixed-width face is used when we have a column table.
+    (set-face-attribute 'org-column nil
+                        :height (face-attribute 'default :height)
+                        :family (face-attribute 'default :family))))
+
+(when (and (fboundp 'daemonp) (daemonp))
+  (add-hook 'org-mode-hook 'wl-org-column-view-uses-fixed-width-face))
+
 (provide 'init-org)
