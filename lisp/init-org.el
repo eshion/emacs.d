@@ -20,7 +20,7 @@
 (global-set-key "\C-cb" 'org-iswitchb)
 
 ;; Agenda Setup
-(setq org-agenda-files (quote ("~/org")))
+(setq org-agenda-files (quote ("~/personal/doc/")))
                                
 ;; Refile targets include this file and any file contributing to the agenda - up to 9 levels deep
 (setq org-refile-targets (quote ((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9))))
@@ -78,29 +78,29 @@
               ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
 
 ;; Capture Templates
-(setq org-directory "~/org")
-(setq org-default-notes-file "~/org/refile.org")
+(setq org-directory "~/personal/doc/")
+(setq org-default-notes-file "~/personal/doc/refile.org")
 
 ;; I use C-c c to start capture mode
 (global-set-key (kbd "C-c c") 'org-capture)
 
 ;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
 (setq org-capture-templates
-      (quote (("t" "todo" entry (file "~/org/refile.org")
+      (quote (("t" "todo" entry (file "~/personal/doc/refile.org")
                "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("r" "respond" entry (file "~/org/refile.org")
+              ("r" "respond" entry (file "~/personal/doc/refile.org")
                "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-              ("n" "note" entry (file "~/org/refile.org")
+              ("n" "note" entry (file "~/personal/doc/refile.org")
                "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("j" "Journal" entry (file+datetree "~/org/diary.org")
+              ("j" "Journal" entry (file+datetree "~/personal/doc/diary.org")
                "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("w" "org-protocol" entry (file "~/org/refile.org")
+              ("w" "org-protocol" entry (file "~/personal/doc/refile.org")
                "* TODO Review %c\n%U\n" :immediate-finish t)
-              ("m" "Meeting" entry (file "~/org/refile.org")
+              ("m" "Meeting" entry (file "~/personal/doc/refile.org")
                "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-              ("p" "Phone call" entry (file "~/org/refile.org")
+              ("p" "Phone call" entry (file "~/personal/doc/refile.org")
                "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-              ("h" "Habit" entry (file "~/org/refile.org")
+              ("h" "Habit" entry (file "~/personal/doc/refile.org")
                "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %a .+1d/3d>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
 
 ;; Remove empty LOGBOOK drawers on clock out
