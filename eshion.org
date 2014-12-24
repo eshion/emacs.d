@@ -1,0 +1,725 @@
+* Base
+** Load path etc.
+#+BEGIN_SRC emacs-lisp
+(let ((elisp-dir (expand-file-name "src" emacs-base-dir)))
+  ;; add the src directory to the load path
+  (add-to-list 'load-path elisp-dir)
+  ;; load specific files
+  (when (file-exists-p elisp-dir)
+    (let ((default-directory elisp-dir))
+      (normal-top-level-add-subdirs-to-load-path))))
+(setq autoload-file (concat emacs-base-dir "loaddefs.el"))
+(setq package-user-dir (concat emacs-base-dir "elpa"))
+(setq custom-file (concat emacs-base-dir "custom.el"))
+#+END_SRC
+** Backups
+#+BEGIN_SRC emacs-lisp
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
+;;varsion control
+(setq version-control 1)
+(setq kept-old-versions 2)
+(setq kept-new-versions 5)
+(setq delete-old-versions t)
+(setq backup-directory-alist '(("." . "~/var/tmp")))
+(setq make-backup-files nil)
+(setq backup-by-copying t)
+#+END_SRC
+** History
+#+BEGIN_SRC emacs-lisp
+(require 'recentf)
+(recentf-mode 1)
+#+END_SRC
+* Helper functions
+#+BEGIN_SRC emacs-lisp
+(defun kill-default-buffer ()
+  "Kill the currently active buffer -- set to C-x k so that users are not asked which buffer they want to kill."
+  (interactive)
+  (let (kill-buffer-query-functions) (kill-buffer)))
+
+(defun kill-buffer-if-file (buf)
+  "Kill a buffer only if it is file-based."
+  (when (buffer-file-name buf)
+    (when (buffer-modified-p buf)
+        (when (y-or-n-p (format "Buffer %s is modified - save it?" (buffer-name buf)))
+            (save-some-buffers nil buf)))
+    (set-buffer-modified-p nil)
+    (kill-buffer buf)))
+
+(defun kill-all-buffers ()
+    "Kill all file-based buffers."
+    (interactive)
+    (mapc (lambda (buf) (kill-buffer-if-file buf))
+     (buffer-list)))
+
+(defun kill-buffer-and-window ()
+  "Close the current window and kill the buffer it's visiting."
+  (interactive)
+  (progn
+    (kill-buffer)
+    (delete-window)))
+
+(defun create-new-buffer ()
+  "Create a new buffer named *new*[num]."
+  (interactive)
+  (switch-to-buffer (generate-new-buffer-name "*new*")))
+
+(defun insert-semicolon-at-end-of-line ()
+  "Add a closing semicolon from anywhere in the line."
+  (interactive)
+  (save-excursion
+    (end-of-line)
+    (insert ";")))
+
+(defun comment-current-line-dwim ()
+  "Comment or uncomment the current line."
+  (interactive)
+  (save-excursion
+    (push-mark (beginning-of-line) t t)
+    (end-of-line)
+    (comment-dwim nil)))
+
+(defun newline-anywhere ()
+  "Add a newline from anywhere in the line."
+  (interactive)
+  (end-of-line)
+  (newline-and-indent))
+
+(defun increase-window-height (&optional arg)
+  "Make the window taller by one line. Useful when bound to a repeatable key combination."
+  (interactive "p")
+  (enlarge-window arg))
+
+(defun decrease-window-height (&optional arg)
+  "Make the window shorter by one line. Useful when bound to a repeatable key combination."
+  (interactive "p")
+  (enlarge-window (- 0 arg)))
+
+(defun decrease-window-width (&optional arg)
+  "Make the window narrower by one column. Useful when bound to a repeatable key combination."
+  (interactive "p")
+  (enlarge-window (- 0 arg) t))
+
+(defun increase-window-width (&optional arg)
+  "Make the window wider by one column. Useful when bound to a repeatable key combination."
+  (interactive "p")
+  (enlarge-window arg t))
+
+;; Create a new instance of emacs
+(when window-system
+  (defun new-emacs-instance ()
+    (interactive)
+    (let ((path-to-emacs
+           (locate-file invocation-name
+                        (list invocation-directory) exec-suffixes)))
+      (call-process path-to-emacs nil 0 nil))))
+#+END_SRC
+* Editing
+#+BEGIN_SRC emacs-lisp
+  ;; Delete marked text on typing
+  (delete-selection-mode t)
+  ;; Don't use tabs for indent; replace tabs with two spaces.
+  (setq-default tab-width 2)
+  (setq-default indent-tabs-mode nil)
+  ;; newline-and-indent
+  (global-set-key (kbd "RET") 'newline-and-indent)
+  ;; Show matching parens
+  (show-paren-mode 1)
+  ;; yes/no to y/n
+  (fset 'yes-or-no-p 'y-or-n-p)
+  ;; max kill-ring
+  (setq kill-ring-max 200)
+#+END_SRC
+** Switching Next/Previous User Buffers
+#+BEGIN_SRC emacs-lisp
+(defun next-user-buffer ()
+  "Switch to the next user buffer.
+User buffers are those whose name does not start with *."
+  (interactive)
+  (next-buffer)
+  (let ((i 0))
+    (while (and (string-match "^*" (buffer-name)) (< i 50))
+      (setq i (1+ i)) (next-buffer) )))
+
+(defun previous-user-buffer ()
+  "Switch to the previous user buffer.
+User buffers are those whose name does not start with *."
+  (interactive)
+  (previous-buffer)
+  (let ((i 0))
+    (while (and (string-match "^*" (buffer-name)) (< i 50))
+      (setq i (1+ i)) (previous-buffer) )))
+
+(defun next-emacs-buffer ()
+  "Switch to the next emacs buffer.
+Emacs buffers are those whose name starts with *."
+  (interactive)
+  (next-buffer)
+  (let ((i 0))
+    (while (and (not (string-match "^*" (buffer-name))) (< i 50))
+      (setq i (1+ i)) (next-buffer) )))
+
+(defun previous-emacs-buffer ()
+  "Switch to the previous emacs buffer.
+Emacs buffers are those whose name starts with *."
+  (interactive)
+  (previous-buffer)
+  (let ((i 0))
+    (while (and (not (string-match "^*" (buffer-name))) (< i 50))
+      (setq i (1+ i)) (previous-buffer) )))
+
+(global-set-key (kbd "<f5>") 'previous-user-buffer)
+(global-set-key (kbd "<f6>") 'next-user-buffer)
+(global-set-key (kbd "<C-f5>") 'previous-emacs-buffer)
+(global-set-key (kbd "<C-f6>") 'next-emacs-buffer)
+#+END_SRC
+** hippie-expand
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "M-/") 'hippie-expand)
+
+(setq hippie-expand-try-functions-list
+      '(try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill))
+#+END_SRC
+** Mouse wheel scroll
+#+BEGIN_SRC emacs-lisp
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)((control)))
+mouse-wheel-progressive-speed nil
+scroll-step 1)
+#+END_SRC
+** make-buffer-file-executable
+#+BEGIN_SRC emacs-lisp
+(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+#+END_SRC
+* GUI
+** Window size and features
+#+BEGIN_SRC emacs-lisp
+  (when window-system
+  ;(tooltip-mode -1)
+    (tool-bar-mode -1)
+    (menu-bar-mode -1)
+    (scroll-bar-mode -1))
+
+  (setq frame-title-format
+        '((:eval (if (buffer-file-name)
+                     (abbreviate-file-name (buffer-file-name))
+                   "%b"))))
+  (setq visible-bell t
+        echo-keystrokes 0.1
+        blink-cursor-mode nil
+        inhibit-startup-message t
+        inhibit-startup-echo-area-message t
+        ring-bell-function 'ignore
+        transient-mark-mode t)
+#+END_SRC
+** adjust-opacity
+#+BEGIN_SRC emacs-lisp
+(defun adjust-opacity (frame incr)
+  (let* ((oldalpha (or (frame-parameter frame 'alpha) 100))
+         (newalpha (+ incr oldalpha)))
+    (when (and (<= frame-alpha-lower-limit newalpha) (>= 100 newalpha))
+      (modify-frame-parameters frame (list (cons 'alpha newalpha))))))
+(global-set-key (kbd "M-C-8") '(lambda () (interactive) (adjust-opacity nil -5)))
+(global-set-key (kbd "M-C-9") '(lambda () (interactive) (adjust-opacity nil 5)))
+(global-set-key (kbd "M-C-0") '(lambda () (interactive) (modify-frame-parameters nil `((alpha . 100)))))
+#+END_SRC
+** theme
+#+BEGIN_SRC emacs-lisp
+(use-package monokai-theme
+:ensure t
+:init (load-theme 'monokai t))
+#+END_SRC
+* IDO
+#+BEGIN_SRC emacs-lisp
+  ;; Use C-f during file selection to switch to regular find-file
+  (ido-mode t)
+  (ido-everywhere t)
+  (setq ido-enable-flex-matching t)
+  (setq ido-use-filename-at-point nil)
+  (setq ido-auto-merge-work-directories-length 0)
+  (setq ido-use-virtual-buffers t)
+
+  ;; Use smex to handle M-x
+  (use-package smex
+    :ensure t
+    :init (progn
+            (global-set-key [remap execute-extended-command] 'smex)))
+
+  (use-package idomenu :ensure t
+    :init (progn
+  ;; Allow the same buffer to be open in different frames
+  (setq ido-default-buffer-method 'selected-window)))
+#+END_SRC
+* company
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :ensure t
+    :init
+    (progn
+      (global-company-mode t)
+      (define-key company-active-map (kbd "RET") nil)
+      (define-key company-active-map (kbd "ESC") 'company-abort)
+      (setq company-idle-delay 0.125
+            company-minimum-prefix-length 1
+            company-require-match nil
+            company-transformers '(company-sort-by-occurrence)
+            company-dabbrev-ignore-case nil
+            company-dabbrev-downcase nil
+            company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+                                company-preview-frontend
+                                company-echo-metadata-frontend))))
+#+END_SRC
+* web-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package web-mode
+    :ensure t
+    :init
+    (progn
+      (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.ftl\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+      (push '("php" . "\\.phtml\\'") web-mode-engine-file-regexps)
+      ;; indentation
+      ;; HTML offset indentation
+      (setq web-mode-markup-indent-offset 2)
+      ;; CSS offset indentation
+      (setq web-mode-code-indent-offset 2)
+      ;; Script offset indentation (for JavaScript, Java, PHP, etc.)
+      (setq web-mode-css-indent-offset 2)
+      ;; HTML content indentation
+      (setq web-mode-indent-style 2)
+
+      ;; padding
+      ;; For <style> parts
+      (setq web-mode-style-padding 1)
+      ;; For <script> parts
+      (setq web-mode-script-padding 1)
+      ;; For multi-line blocks
+      (setq web-mode-block-padding 0)
+
+      (setq web-mode-disable-auto-pairing t)))
+#+END_SRC
+* evil
+#+BEGIN_SRC emacs-lisp
+  (use-package evil
+    :ensure t
+    :init
+    (progn
+      (setq evil-want-fine-undo t)
+      (evil-mode 1)
+      (setcdr evil-insert-state-map nil)
+      (define-key evil-insert-state-map [escape] 'evil-normal-state)
+      (define-key evil-insert-state-map
+        (read-kbd-macro evil-toggle-key) 'evil-emacs-state))
+
+
+    ;;;; Support
+    (defmacro without-evil-mode (&rest do-this)
+      ;; Check if evil-mode is on, and disable it temporarily
+      `(let ((evil-mode-is-on (evil-mode?)))
+         (if evil-mode-is-on
+             (disable-evil-mode))
+         (ignore-errors
+           ,@do-this)
+         (if evil-mode-is-on
+             (enable-evil-mode))))
+
+    (defmacro evil-mode? ()
+      "Checks if evil-mode is active. Uses Evil's state to check."
+      `evil-state)
+
+    (defmacro disable-evil-mode ()
+      "Disable evil-mode with visual cues."
+      `(progn
+         (evil-mode 0)
+         (message "Evil mode disabled")))
+
+    (defmacro enable-evil-mode ()
+      "Enable evil-mode with visual cues."
+      `(progn
+         (evil-mode 1)
+         (message "Evil mode enabled")))
+
+  ;;;; Clipboard bypass
+
+    ;; delete: char
+    (evil-define-operator evil-destroy-char (beg end type register yank-handler)
+      :motion evil-forward-char
+      (evil-delete-char beg end type ?_))
+
+    ;; delete: char (backwards)
+    (evil-define-operator evil-destroy-backward-char (beg end type register yank-handler)
+      :motion evil-forward-char
+      (evil-delete-backward-char beg end type ?_))
+
+    ;; delete: text object
+    (evil-define-operator evil-destroy (beg end type register yank-handler)
+      "Vim's 's' without clipboard."
+      (evil-delete beg end type ?_ yank-handler))
+
+    ;; delete: to end of line
+    (evil-define-operator evil-destroy-line (beg end type register yank-handler)
+      :motion nil
+      :keep-visual t
+      (interactive "<R><x>")
+      (evil-delete-line beg end type ?_ yank-handler))
+
+    ;; delete: whole line
+    (evil-define-operator evil-destroy-whole-line (beg end type register yank-handler)
+      :motion evil-line
+      (interactive "<R><x>")
+      (evil-delete-whole-line beg end type ?_ yank-handler))
+
+    ;; change: text object
+    (evil-define-operator evil-destroy-change (beg end type register yank-handler delete-func)
+      (evil-change beg end type ?_ yank-handler delete-func))
+
+    ;; paste: before
+    (defun evil-destroy-paste-before ()
+      (interactive)
+      (without-evil-mode
+       (delete-region (point) (mark))
+       (evil-paste-before 1)))
+
+    ;; paste: after
+    (defun evil-destroy-paste-after ()
+      (interactive)
+      (without-evil-mode
+       (delete-region (point) (mark))
+       (evil-paste-after 1)))
+
+    ;; paste: text object
+    (evil-define-operator evil-destroy-replace (beg end type register yank-handler)
+      (evil-destroy beg end type register yank-handler)
+      (evil-paste-before 1 register))
+
+
+    ;; Clipboard bypass key rebindings
+    (define-key evil-normal-state-map "s" 'evil-destroy)
+    (define-key evil-normal-state-map "S" 'evil-destroy-line)
+    (define-key evil-normal-state-map "c" 'evil-destroy-change)
+    (define-key evil-normal-state-map "x" 'evil-destroy-char)
+    (define-key evil-normal-state-map "X" 'evil-destroy-whole-line)
+    (define-key evil-normal-state-map "Y" 'evil-copy-to-end-of-line)
+    (define-key evil-visual-state-map "P" 'evil-destroy-paste-before)
+    (define-key evil-visual-state-map "p" 'evil-destroy-paste-after))
+#+END_SRC
+* flycheck
+#+BEGIN_SRC emacs-lisp
+  (use-package let-alist
+    :ensure t
+    :init
+    (use-package flycheck
+      :ensure t
+      :init
+      (progn
+        (defun my--flycheck-display-errors-function (errors)
+          (mapc (lambda (err)
+                  (message "FlyC: %s" (flycheck-error-message err)) (sit-for 1))
+                errors))
+        (setq flycheck-highlighting-mode nil
+              flycheck-display-errors-function 'my--flycheck-display-errors-function)
+        (add-hook 'js-mode-hook
+                  (lambda () (flycheck-mode t)))
+        (add-hook 'php-mode-hook
+                  (lambda () (flycheck-mode t))))))
+#+END_SRC
+* smartparens
+#+BEGIN_SRC emacs-lisp
+  (use-package smartparens
+    :ensure t
+    :init
+    (progn
+      (require 'smartparens-config)
+      (defun sp-pair-on-newline (id action context)
+        "Put trailing pair on newline and return to point."
+        (save-excursion
+          (newline)
+          (indent-according-to-mode)))
+
+      (defun sp-pair-on-newline-and-indent (id action context)
+        "Open a new brace or bracket expression, with relevant newlines and indent. "
+        (sp-pair-on-newline id action context)
+        (indent-according-to-mode))
+
+      (sp-pair "{" nil :post-handlers
+               '(:add ((lambda (id action context)
+                         (sp-pair-on-newline-and-indent id action context)) "RET")))
+      (sp-pair "[" nil :post-handlers
+               '(:add ((lambda (id action context)
+                         (sp-pair-on-newline-and-indent id action context)) "RET")))
+
+      (sp-local-pair '(markdown-mode gfm-mode) "*" "*"
+                     :unless '(sp-in-string-p)
+                     :actions '(insert wrap))
+
+      (dolist (mode '(coffee-mode shell-mode))
+        (add-to-list 'sp-autoescape-string-quote-if-empty mode))
+      (setq sp-highlight-pair-overlay nil)
+      (smartparens-global-mode t)))
+#+END_SRC
+* multiple cursors
+#+BEGIN_SRC emacs-lisp
+  (use-package multiple-cursors
+    :ensure t
+    :init 
+    (progn
+      (use-package region-bindings-mode
+        :ensure t
+        :init
+        (progn
+          (require 'region-bindings-mode)
+          (region-bindings-mode-enable)
+          ;Binding mouse events
+          (global-unset-key (kbd "M-<down-mouse-1>"))
+          (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
+
+          (define-key region-bindings-mode-map "a" 'mc/mark-all-like-this)
+          (define-key region-bindings-mode-map "p" 'mc/mark-previous-like-this)
+          (define-key region-bindings-mode-map "n" 'mc/mark-next-like-this)
+          (define-key region-bindings-mode-map "m" 'mc/mark-more-like-this-extended)
+          (define-key region-bindings-mode-map ">" 'mc/unmark-previous-like-this)
+          (define-key region-bindings-mode-map "<" 'mc/unmark-next-like-this)
+          (define-key region-bindings-mode-map "P" 'mc/skip-to-previous-like-this)
+          (define-key region-bindings-mode-map "N" 'mc/skip-to-next-like-this)))))
+#+END_SRC
+* Auto Sync
+#+BEGIN_SRC emacs-lisp
+  (defcustom auto-sync-script-name ".sync"
+    "customized scripts which to be executed after save-buffer done")
+
+  (defun auto-sync-search-script-hierarchy (dir)
+    (progn
+      (while (not (or (equal dir "/")
+                      (file-exists-p
+                       (concat dir auto-sync-script-name))))
+        (setq dir (file-name-as-directory
+                   (file-name-directory
+                    (directory-file-name dir)))))
+      (if (equal dir "/") nil dir)))
+
+  (defun auto-sync-start-process (dir)
+
+    (let ((script (concat dir auto-sync-script-name))
+          (process-obj (get-process "auto-sync-process"))
+          (fold (progn (string-match dir dir) (replace-match "" nil nil (file-name-directory buffer-file-name) 0))))
+      (unless (and process-obj
+                   (eq (process-status process-obj) 'run))
+        (start-process "auto-sync-process"
+                       (get-buffer-create "*Messages*")
+                       script "upload" fold (file-name-nondirectory buffer-file-name)))))
+  (defun auto-sync-run ()
+    (interactive)
+    (let ((dir (auto-sync-search-script-hierarchy
+                (file-name-directory buffer-file-name))))
+      (message dir)
+      (if dir
+          (if (auto-sync-start-process dir)
+              (message "Synchronized %s" buffer-file-name)
+            (message "Synchronize %s failed" buffer-file-name)
+            (message "Wrote %s done" buffer-file-name)))))
+
+  (add-hook 'after-save-hook 'auto-sync-run)
+
+#+END_SRC
+* Org
+** Various preferences
+#+BEGIN_SRC emacs-lisp
+(setq org-log-done t
+      org-completion-use-ido t
+      org-edit-timestamp-down-means-later t
+      org-agenda-start-on-weekday nil
+      org-agenda-span 14
+      org-agenda-include-diary t
+      org-agenda-window-setup 'current-window
+      org-fast-tag-selection-single-key 'expert
+      org-use-fast-todo-selection t
+      org-export-kill-product-buffer-when-displayed t
+      org-export-with-sub-superscripts '{}
+      org-src-fontify-natively t
+      org-tags-column 80)
+#+END_SRC
+** Standard key bindings
+#+BEGIN_SRC emacs-lisp
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cb" 'org-iswitchb)
+#+END_SRC
+** Setup
+#+BEGIN_SRC emacs-lisp
+;; Agenda Setup
+(setq org-agenda-files (quote ("~/personal/doc/")))
+                               
+;; Refile targets include this file and any file contributing to the agenda - up to 9 levels deep
+(setq org-refile-targets (quote ((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9))))
+
+; Use full outline paths for refile targets - we file directly with IDO
+(setq org-refile-use-outline-path t)
+; Targets complete directly with IDO
+(setq org-outline-path-complete-in-steps nil)
+
+; Allow refile to create parent tasks with confirmation
+(setq org-refile-allow-creating-parent-nodes (quote confirm))
+
+; Use IDO for both buffer and file completion and ido-everywhere to t
+(setq org-completion-use-ido t)
+(setq ido-everywhere t)
+(setq ido-max-directory-size 100000)
+(ido-mode (quote both))
+; Use the current window when visiting files and buffers with ido
+(setq ido-default-file-method 'selected-window)
+(setq ido-default-buffer-method 'selected-window)
+; Use the current window for indirect buffer display
+(setq org-indirect-buffer-display 'current-window)
+
+;;;; Refile settings
+; Exclude DONE state tasks from refile targets
+(defun bh/verify-refile-target ()
+  "Exclude todo keywords with a done state from refile targets"
+  (not (member (nth 2 (org-heading-components)) org-done-keywords)))
+
+(setq org-refile-target-verify-function 'bh/verify-refile-target)
+#+END_SRC
+** TODO settings
+#+BEGIN_SRC emacs-lisp
+;; TODO keywords
+(setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "STARTED(s)" "|" "DONE(d!/!)")
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
+
+(setq org-todo-keyword-faces
+      (quote (("TODO" :foreground "red" :weight bold)
+              ("STARTED" :foreground "blue" :weight bold)
+              ("DONE" :foreground "forest green" :weight bold)
+              ("WAITING" :foreground "orange" :weight bold)
+              ("HOLD" :foreground "magenta" :weight bold)
+              ("CANCELLED" :foreground "forest green" :weight bold)
+              ("MEETING" :foreground "forest green" :weight bold)
+              ("PHONE" :foreground "forest green" :weight bold))))
+;; TODO state triggers
+(setq org-todo-state-tags-triggers
+      (quote (("CANCELLED" ("CANCELLED" . t))
+              ("WAITING" ("WAITING" . t))
+              ("HOLD" ("WAITING") ("HOLD" . t))
+              (done ("WAITING") ("HOLD"))
+              ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("STARTED" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+#+END_SRC
+** Templates
+#+BEGIN_SRC emacs-lisp
+;; Capture Templates
+(setq org-directory "~/personal/doc/")
+(setq org-default-notes-file "~/personal/doc/refile.org")
+
+;; I use C-c c to start capture mode
+(global-set-key (kbd "C-c c") 'org-capture)
+
+;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
+(setq org-capture-templates
+      (quote (("t" "todo" entry (file "~/personal/doc/refile.org")
+               "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
+              ("r" "respond" entry (file "~/personal/doc/refile.org")
+               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+              ("n" "note" entry (file "~/personal/doc/refile.org")
+               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+              ("j" "Journal" entry (file+datetree "~/personal/doc/diary.org")
+               "* %?\n%U\n" :clock-in t :clock-resume t)
+              ("w" "org-protocol" entry (file "~/personal/doc/refile.org")
+               "* TODO Review %c\n%U\n" :immediate-finish t)
+              ("m" "Meeting" entry (file "~/personal/doc/refile.org")
+               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+              ("p" "Phone call" entry (file "~/personal/doc/refile.org")
+               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+              ("h" "Habit" entry (file "~/personal/doc/refile.org")
+               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %a .+1d/3d>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+
+;; Remove empty LOGBOOK drawers on clock out
+(defun bh/remove-empty-drawer-on-clock-out ()
+  (interactive)
+  (save-excursion
+    (beginning-of-line 0)
+    (org-remove-empty-drawer-at (point))))
+
+(add-hook 'org-clock-out-hook 'bh/remove-empty-drawer-on-clock-out 'append)
+#+END_SRC
+** org-babel-load-languages
+#+BEGIN_SRC emacs-lisp
+;; 1. dita
+;; #+BEGIN_SRC ditaa :file ${1:export-file-name} :cmdline -r -s 0.8 
+;; ${0}
+;; #+END_SRC
+;; 2. dot
+;; #+BEGIN_SRC dot :file ${1:export-file-name}.png :cmdline -Kdot -Tpng
+;; title ${0}
+;; #+END_SRC
+;; 3. uml
+;; #+BEGIN_SRC plantuml :file ${1:export-file-name} :cmdline -charset UTF-8
+;; title ${0}
+;; #+END_SRC
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '(;; other Babel languages
+   (ditaa . t)
+   (plantuml . t)
+   (dot . t)
+   ))
+
+(add-to-list 'org-structure-template-alist
+             '("dot" "#+BEGIN_SRC dot :file file_?.png :cmdline -Kdot -Tpng\n?\n#+END_SRC"))
+
+(setq org-confirm-babel-evaluate nil)
+
+;; preview image
+(add-hook 'org-babel-after-execute-hook 'bh/display-inline-images 'append)
+
+; Make babel results blocks lowercase
+(setq org-babel-results-keyword "results")
+
+(defun bh/display-inline-images ()
+  (condition-case nil
+      (org-display-inline-images)
+    (error nil)))
+#+END_SRC
+** Fonts settings
+#+BEGIN_SRC emacs-lisp
+(if (and (fboundp 'daemonp) (daemonp))
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                (with-selected-frame frame
+                  (set-fontset-font "fontset-default"
+                                    'chinese-gbk "WenQuanYi Micro Hei Mono 15"))))
+  (set-fontset-font "fontset-default" 'chinese-gbk "WenQuanYi Micro Hei Mono 15"))
+
+
+(defun wl-org-column-view-uses-fixed-width-face ()
+  ;; copy from org-faces.el
+  (when (fboundp 'set-face-attribute)
+    ;; Make sure that a fixed-width face is used when we have a column table.
+    (set-face-attribute 'org-column nil
+                        :height (face-attribute 'default :height)
+                        :family (face-attribute 'default :family))))
+
+(when (and (fboundp 'daemonp) (daemonp))
+  (add-hook 'org-mode-hook 'wl-org-column-view-uses-fixed-width-face))
+#+END_SRC
+** Htmlize
+#+BEGIN_SRC emacs-lisp
+(use-package htmlize :ensure t)
+#+END_SRC
+* Load Customize
+#+BEGIN_SRC emacs-lisp
+(load custom-file 'noerror)
+#+END_SRC
