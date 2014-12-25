@@ -273,7 +273,25 @@ scroll-step 1)
             company-dabbrev-downcase nil
             company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
                                 company-preview-frontend
-                                company-echo-metadata-frontend))))
+                                company-echo-metadata-frontend))
+      (add-hook 'js-mode-hook
+                (lambda ()
+                  (set (make-local-variable 'company-backends)
+                       '((company-dabbrev-code company-yasnippet)))))
+      (add-hook 'php-mode-hook
+                (lambda ()
+                  (set (make-local-variable 'company-backends)
+                       '((company-dabbrev-code company-yasnippet)))))
+      (add-hook 'web-mode-hook
+                (lambda ()
+                  (set (make-local-variable 'company-backends)
+                       '((company-dabbrev-code company-yasnippet)))))
+      (add-hook 'css-mode-hook
+                (lambda ()
+                  (set (make-local-variable 'company-backends)
+                       '((company-dabbrev-code company-yasnippet)))))
+
+      ))
 #+END_SRC
 * web-mode
 #+BEGIN_SRC emacs-lisp
@@ -290,7 +308,6 @@ scroll-step 1)
       (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
       (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
       (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-      (push '("php" . "\\.phtml\\'") web-mode-engine-file-regexps)
       ;; indentation
       ;; HTML offset indentation
       (setq web-mode-markup-indent-offset 2)
@@ -676,6 +693,9 @@ scroll-step 1)
    (plantuml . t)
    (dot . t)
    ))
+; path settings
+(setq org-plantuml-jar-path
+      (expand-file-name (concat emacs-base-dir "scripts/plantuml.jar")))
 
 (add-to-list 'org-structure-template-alist
              '("dot" "#+BEGIN_SRC dot :file file_?.png :cmdline -Kdot -Tpng\n?\n#+END_SRC"))
@@ -718,6 +738,20 @@ scroll-step 1)
 ** Htmlize
 #+BEGIN_SRC emacs-lisp
 (use-package htmlize :ensure t)
+#+END_SRC
+* php
+#+BEGIN_SRC emacs-lisp
+(use-package php-mode :ensure t)
+#+END_SRC
+* yasnippet
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :init 
+    (progn 
+      (yas-global-mode 1)
+      (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
+      ))
 #+END_SRC
 * Load Customize
 #+BEGIN_SRC emacs-lisp
