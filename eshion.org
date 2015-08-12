@@ -577,7 +577,7 @@ scroll-step 1)
 ** Setup
 #+BEGIN_SRC emacs-lisp
 ;; Agenda Setup
-(setq org-agenda-files (quote ("~/personal/doc/")))
+(setq org-agenda-files (quote ("~/personal/GTD/")))
                                
 ;; Refile targets include this file and any file contributing to the agenda - up to 9 levels deep
 (setq org-refile-targets (quote ((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9))))
@@ -638,30 +638,40 @@ scroll-step 1)
 ** Templates
 #+BEGIN_SRC emacs-lisp
 ;; Capture Templates
-(setq org-directory "~/personal/doc/")
-(setq org-default-notes-file "~/personal/doc/refile.org")
+(setq org-directory "~/personal/GTD/")
+(setq org-default-notes-file (concat org-directory "inbox.org"))
 
 ;; I use C-c c to start capture mode
 (global-set-key (kbd "C-c c") 'org-capture)
 
-;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
 (setq org-capture-templates
-      (quote (("t" "todo" entry (file "~/personal/doc/refile.org")
-               "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("r" "respond" entry (file "~/personal/doc/refile.org")
-               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-              ("n" "note" entry (file "~/personal/doc/refile.org")
-               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("j" "Journal" entry (file+datetree "~/personal/doc/diary.org")
-               "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("w" "org-protocol" entry (file "~/personal/doc/refile.org")
-               "* TODO Review %c\n%U\n" :immediate-finish t)
-              ("m" "Meeting" entry (file "~/personal/doc/refile.org")
-               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-              ("p" "Phone call" entry (file "~/personal/doc/refile.org")
-               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-              ("h" "Habit" entry (file "~/personal/doc/refile.org")
-               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %a .+1d/3d>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+      (quote (("n" "New" entry (file "~/personal/GTD/inbox.org") "* %? %t \n %i \n %a")
+              ("t" "Task" entry (file+headline "~/personal/GTD/task.org" "Tasks") "** TODO %?\n %i\n %a")
+              ("c" "Calendar" entry (file+headline "~/personal/GTD/task.org" "Tasks") "** TODO %?\n %i\n %a")
+              ("i" "Idea" entry (file+header "~/personal/GTD/task.org" "Ideas") "** %?\n %i\n %a")
+              ("n" "Note" entry (file "~/personal/GTD/note.org") "* %?\n %i\n %a")
+              ("p" "Project" entry (file "~/personal/GTD/project.org") "** %?\n %i\n %a")
+
+)))
+
+;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
+;(setq org-capture-templates
+;      (quote (("t" "todo" entry (file "~/personal/doc/refile.org")
+;               "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
+;              ("r" "respond" entry (file "~/personal/doc/refile.org")
+;               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+;              ("n" "note" entry (file "~/personal/doc/refile.org")
+;               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+;              ("j" "Journal" entry (file+datetree "~/personal/doc/diary.org")
+;               "* %?\n%U\n" :clock-in t :clock-resume t)
+;              ("w" "org-protocol" entry (file "~/personal/doc/refile.org")
+;               "* TODO Review %c\n%U\n" :immediate-finish t)
+;              ("m" "Meeting" entry (file "~/personal/doc/refile.org")
+;               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+;              ("p" "Phone call" entry (file "~/personal/doc/refile.org")
+;               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+;              ("h" "Habit" entry (file "~/personal/doc/refile.org")
+;               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %a .+1d/3d>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
 
 ;; Remove empty LOGBOOK drawers on clock out
 (defun bh/remove-empty-drawer-on-clock-out ()
