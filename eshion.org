@@ -792,6 +792,14 @@ scroll-step 1)
   ;; 可以設定任何 ID 或是設成 nil 來使用對稱式加密 (symmetric encryption)
   (setq org-crypt-key nil)
 #+END_SRC
+** org-bullets
+#+BEGIN_SRC emacs-lisp
+  (use-package org-bullets
+    :ensure t
+    :init
+    (progn (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))))
+#+END_SRC
+
 * Cal
 ** cal-china-x
 #+BEGIN_SRC emacs-lisp
