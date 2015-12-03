@@ -453,6 +453,31 @@ scroll-step 1)
         (add-hook 'php-mode-hook
                   (lambda () (flycheck-mode t))))))
 #+END_SRC
+* org-tree-slide
+#+BEGIN_SRC emacs-lisp
+  (use-package org-tree-slide
+    :ensure t
+    :init
+    (progn
+      (when (require 'org-tree-slide nil t)
+        (define-key org-mode-map (kbd "<f8>") 'org-tree-slide-mode)
+        (define-key org-tree-slide-mode-map (kbd "<f9>")
+          'org-tree-slide-move-previous-tree)
+        (define-key org-tree-slide-mode-map (kbd "<f10>")
+          'org-tree-slide-move-next-tree)
+        (define-key org-tree-slide-mode-map (kbd "<f11>")
+          'org-tree-slide-content))))
+#+END_SRC
+  
+* ox-reveal
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-reveal
+    :ensure t
+    :init
+    (progn
+      (setq org-reveal-root "http://cdn.bootcss.com/reveal.js/3.2.0/")
+      (setq org-reveal-hlevel 2)))
+#+END_SRC
 * smartparens
 #+BEGIN_SRC emacs-lisp
   (use-package smartparens
