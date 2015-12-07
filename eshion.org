@@ -537,6 +537,49 @@ scroll-step 1)
           (define-key region-bindings-mode-map "P" 'mc/skip-to-previous-like-this)
           (define-key region-bindings-mode-map "N" 'mc/skip-to-next-like-this)))))
 #+END_SRC
+* Dired
+#+BEGIN_SRC emacs-lisp
+  (setq dired-recursive-deletes 'always)
+  (setq dired-recursive-copies 'always)
+  (setq dired-dwim-target t)
+  (defun ergoemacs-open-in-external-app ()
+    "Open the current file or dired marked files in external app."
+    (interactive)
+    (let ( doIt
+           (myFileList
+            (cond
+             ((string-equal major-mode "dired-mode") (dired-get-marked-files))
+             (t (list (buffer-file-name))) ) ) )
+
+      (setq doIt (if (<= (length myFileList) 5)
+                     t
+                   (y-or-n-p "Open more than 5 files?") ) )
+
+      (when doIt
+        (cond
+         ((string-equal system-type "windows-nt")
+          (mapc (lambda (fPath) (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" fPath t t)) ) myFileList)
+          )
+         ((string-equal system-type "darwin")
+          (mapc (lambda (fPath) (shell-command (format "open \"%s\"" fPath)) )  myFileList) )
+         ((string-equal system-type "gnu/linux")
+          (mapc (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath)) ) myFileList) ) ) ) ) )
+          
+(defun ergoemacs-open-in-desktop ()
+  "Show current file in desktop (OS's file manager)."
+  (interactive)
+  (cond
+   ((string-equal system-type "windows-nt")
+    (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
+   ((string-equal system-type "darwin") (shell-command "open ."))
+   ((string-equal system-type "gnu/linux")
+    (let ((process-connection-type nil)) (start-process "" nil "xdg-open" "."))
+    ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. ⁖ with nautilus
+    ) ))
+
+  ;(define-key dired-mode-map (kbd "s-o") 'ergoemacs-open-in-external-app)
+  ;(define-key dired-mode-map (kbd "s-O") 'ergoemacs-open-in-desktop)
+#+END_SRC
 * Auto Sync
 #+BEGIN_SRC emacs-lisp
   (defcustom auto-sync-script-name ".sync"
@@ -824,7 +867,34 @@ scroll-step 1)
     :init
     (progn (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))))
 #+END_SRC
-
+** screenshot
+#+BEGIN_SRC emacs-lisp
+  (defun my-org-screenshot (basename)
+    "Take a screenshot into a time stamped unique-named file in the
+    same directory as the org-buffer and insert a link to this file."
+    (interactive "sScreenshot name: ")
+    (if (equal basename "")
+        (setq basename (format-time-string "%Y%m%d_%H%M%S")))
+    (setq fullpath
+          (concat (file-name-directory (buffer-file-name))
+                  "imgs/"
+                  (file-name-base (buffer-file-name))
+                  "_"
+                  basename
+                  ".png"))
+    (setq relativepath
+          (concat "./imgs/"
+                  (file-name-base (buffer-file-name))
+                  "_"
+                  basename
+                  ".png"))
+    (call-process "screencapture" nil nil nil "-s" fullpath)
+    (insert "#+CAPTION:")
+    (insert relativepath)
+    (insert "\n")
+    (insert (concat "[[" relativepath "]]"))
+    (org-display-inline-images))
+#+END_SRC
 * Cal
 ** cal-china-x
 #+BEGIN_SRC emacs-lisp
