@@ -871,7 +871,7 @@ scroll-step 1)
 #+BEGIN_SRC emacs-lisp
   (defun my-org-screenshot (basename)
     "Take a screenshot into a time stamped unique-named file in the
-    same directory as the org-buffer and insert a link to this file."
+      same directory as the org-buffer and insert a link to this file."
     (interactive "sScreenshot name: ")
     (if (equal basename "")
         (setq basename (format-time-string "%Y%m%d_%H%M%S")))
@@ -888,7 +888,13 @@ scroll-step 1)
                   "_"
                   basename
                   ".png"))
-    (call-process "screencapture" nil nil nil "-s" fullpath)
+    (cond
+     ((string-equal system-type "windows-nt")
+      (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
+     ((string-equal system-type "darwin") (call-process "screencapture" nil nil nil "-s" fullpath))
+     ((string-equal system-type "gnu/linux") (call-process "scrot" nil nil nil "-s" fullpath)
+      ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. ⁖ with nautilus
+      ) )
     (insert "#+CAPTION:")
     (insert relativepath)
     (insert "\n")
