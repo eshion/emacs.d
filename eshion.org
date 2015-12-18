@@ -455,20 +455,30 @@ scroll-step 1)
 #+END_SRC
 * org-tree-slide
 #+BEGIN_SRC emacs-lisp
-  (use-package org-tree-slide
-    :ensure t
-    :init
-    (progn
-      (when (require 'org-tree-slide nil t)
-        (define-key org-mode-map (kbd "<f8>") 'org-tree-slide-mode)
-        (define-key org-tree-slide-mode-map (kbd "<f9>")
-          'org-tree-slide-move-previous-tree)
-        (define-key org-tree-slide-mode-map (kbd "<f10>")
-          'org-tree-slide-move-next-tree)
-        (define-key org-tree-slide-mode-map (kbd "<f11>")
-          'org-tree-slide-content))))
+;  (use-package org-tree-slide
+;    :ensure t
+;    :init
+;    (progn
+;      (when (require 'org-tree-slide nil t)
+;        (define-key org-mode-map (kbd "<f8>") 'org-tree-slide-mode)
+;        (define-key org-tree-slide-mode-map (kbd "<f9>")
+;          'org-tree-slide-move-previous-tree)
+;        (define-key org-tree-slide-mode-map (kbd "<f10>")
+;          'org-tree-slide-move-next-tree)
+;        (define-key org-tree-slide-mode-map (kbd "<f11>")
+;          'org-tree-slide-content))))
 #+END_SRC
-  
+* emms
+#+BEGIN_SRC emacs-lisp
+  (use-package emms
+    :ensure t
+    :config
+    (progn 
+      (require 'emms-setup nil t)
+      ;(emms-all)
+      (emms-default-players)
+      ))
+#+END_SRC
 * ox-reveal
 #+BEGIN_SRC emacs-lisp
   (use-package ox-reveal
