@@ -197,6 +197,18 @@ scroll-step 1)
 #+BEGIN_SRC emacs-lisp
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 #+END_SRC
+* Mac
+#+BEGIN_SRC emacs-lisp
+  (when (memq window-system '(mac ns))
+    (progn
+      (use-package exec-path-from-shell
+        :ensure t
+        :config
+        (progn 
+          (exec-path-from-shell-initialize)
+          ))
+      ))
+#+END_SRC
 * GUI
 ** Window size and features
 #+BEGIN_SRC emacs-lisp
@@ -244,6 +256,24 @@ scroll-step 1)
       (indent-guide-global-mode)
       ))
 #+END_SRC
+** hideshowvis
+#+BEGIN_SRC emacs-lisp
+  (use-package hideshowvis
+    :ensure t
+    :init 
+    (progn
+      (autoload 'hideshowvis-enable "hideshowvis" "Highlight foldable regions")
+      (autoload 'hideshowvis-minor-mode
+        "hideshowvis"
+        "Will indicate regions foldable with hideshow in the fringe."
+        'interactive)
+      (dolist (hook (list 'emacs-lisp-mode-hook
+                          'c++-mode-hook
+                          'js-mode-hook))
+        (add-hook hook 'hideshowvis-enable))
+      ;(hideshowvis-symbols)
+      ))
+#+END_SRC
 * IDO
 #+BEGIN_SRC emacs-lisp
   ;; Use C-f during file selection to switch to regular find-file
@@ -267,7 +297,7 @@ scroll-step 1)
 #+END_SRC
 * company
 #+BEGIN_SRC emacs-lisp
-  (use-package company
+(use-package company
     :ensure t
     :init
     (progn
@@ -286,7 +316,7 @@ scroll-step 1)
       (add-hook 'js-mode-hook
                 (lambda ()
                   (set (make-local-variable 'company-backends)
-                       '((company-dabbrev-code company-yasnippet)))))
+                       '((company-tern)))))
       (add-hook 'php-mode-hook
                 (lambda ()
                   (set (make-local-variable 'company-backends)
@@ -300,6 +330,15 @@ scroll-step 1)
                   (set (make-local-variable 'company-backends)
                        '((company-dabbrev-code company-yasnippet)))))
 
+      ))
+#+END_SRC
+* company-quickhelp
+#+BEGIN_SRC emacs-lisp
+  (use-package company-quickhelp
+    :ensure t
+    :init 
+    (progn
+      (company-quickhelp-mode 1)
       ))
 #+END_SRC
 * web-mode
@@ -337,6 +376,26 @@ scroll-step 1)
 
       (setq web-mode-disable-auto-pairing t)))
 #+END_SRC
+* tern
+#+BEGIN_SRC emacs-lisp
+  (use-package tern
+    :ensure t
+    :config
+    (progn 
+      (add-hook 'js-mode-hook (lambda () (tern-mode t)))
+      ))
+#+END_SRC
+* emmet-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package emmet-mode
+    :ensure t
+    :init 
+    (progn
+      (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+      (add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
+      (add-hook 'web-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
+      ))
+#+END_SRC
 * evil
 #+BEGIN_SRC emacs-lisp
   (use-package evil
@@ -344,7 +403,7 @@ scroll-step 1)
     :init
     (progn
       (setq evil-want-fine-undo t)
-      (setq evil-default-state 'insert)
+      ;(setq evil-default-state 'insert)
       (evil-mode 1)
       (setcdr evil-insert-state-map nil)
       (define-key evil-insert-state-map [escape] 'evil-normal-state)
