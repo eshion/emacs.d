@@ -274,6 +274,15 @@ scroll-step 1)
       ;(hideshowvis-symbols)
       ))
 #+END_SRC
+** which-key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :ensure t
+    :init 
+    (progn
+      (which-key-mode)
+      ))
+#+END_SRC
 * IDO
 #+BEGIN_SRC emacs-lisp
   ;; Use C-f during file selection to switch to regular find-file
@@ -313,10 +322,6 @@ scroll-step 1)
             company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
                                 company-preview-frontend
                                 company-echo-metadata-frontend))
-      (add-hook 'js-mode-hook
-                (lambda ()
-                  (set (make-local-variable 'company-backends)
-                       '((company-tern)))))
       (add-hook 'php-mode-hook
                 (lambda ()
                   (set (make-local-variable 'company-backends)
@@ -383,6 +388,18 @@ scroll-step 1)
     :config
     (progn 
       (add-hook 'js-mode-hook (lambda () (tern-mode t)))
+      ))
+#+END_SRC
+* company-tern
+#+BEGIN_SRC emacs-lisp
+  (use-package company-tern
+    :ensure t
+    :init
+    (progn
+      (add-hook 'js-mode-hook
+                (lambda ()
+                  (set (make-local-variable 'company-backends)
+                       '((company-tern)))))
       ))
 #+END_SRC
 * emmet-mode
