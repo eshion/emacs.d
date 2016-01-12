@@ -821,7 +821,8 @@ scroll-step 1)
               ("i" "Idea" entry (file+header "~/personal/GTD/task.org" "Ideas") "** %?\n %i\n %a")
               ("n" "Note" entry (file "~/personal/GTD/note.org") "* %?\n %i\n %a")
               ("p" "Project" entry (file "~/personal/GTD/project.org") "** %?\n %i\n %a")
-
+              ("b" "Bookmark" entry (file+headline "~/personal/GTD/note.org" "Bookmarks")
+	            "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:" :empty-lines 1)
 )))
 
 ;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
