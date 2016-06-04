@@ -352,16 +352,11 @@ scroll-step 1)
     :ensure t
     :init
     (progn
-      (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.ftl\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-      (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.phtml$" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.ftl$" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.tpl\\.php" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.html?" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
       ;; indentation
       ;; HTML offset indentation
       (setq web-mode-markup-indent-offset 2)
@@ -370,7 +365,7 @@ scroll-step 1)
       ;; Script offset indentation (for JavaScript, Java, PHP, etc.)
       (setq web-mode-css-indent-offset 2)
       ;; HTML content indentation
-      (setq web-mode-indent-style 2)
+      ;(setq web-mode-indent-style 2)
 
       ;; padding
       ;; For <style> parts
@@ -380,7 +375,28 @@ scroll-step 1)
       ;; For multi-line blocks
       (setq web-mode-block-padding 0)
 
-      (setq web-mode-disable-auto-pairing t)))
+      (setq web-mode-disable-auto-pairing t)
+
+      ;; for better jsx syntax-highlighting in web-mode
+      ;; - courtesy of Patrick @halbtuerke
+      (defadvice web-mode-highlight-part (around tweak-jsx activate)
+        (if (equal web-mode-content-type "jsx")
+            (let ((web-mode-enable-part-face nil))
+              ad-do-it)
+          ad-do-it))
+
+      ))
+
+#+END_SRC
+* js2-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package js2-mode
+    :ensure t
+    :config
+    (progn 
+      (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+      ;(add-to-list 'auto-mode-alist '("\\.jsx$" . js2-mode))
+      ))
 #+END_SRC
 * tern
 #+BEGIN_SRC emacs-lisp
@@ -530,42 +546,32 @@ scroll-step 1)
       :ensure t
       :init
       (progn
+        (require 'flycheck)
         (defun my--flycheck-display-errors-function (errors)
           (mapc (lambda (err)
                   (message "FlyC: %s" (flycheck-error-message err)) (sit-for 1))
                 errors))
+        ;; disable jshint since we prefer eslint checking
+        (setq-default flycheck-disabled-checkers
+                      (append flycheck-disabled-checkers
+                              '(javascript-jshint)))
+        ;; use eslint with web-mode for jsx files
+        (flycheck-add-mode 'javascript-eslint 'web-mode)
+
+        ;; customize flycheck temp file prefix
+        (setq-default flycheck-temp-prefix ".flycheck")
+
+        ;; disable json-jsonlist checking for json files
+        (setq-default flycheck-disabled-checkers
+                      (append flycheck-disabled-checkers
+                              '(json-jsonlist)))
+
         (setq flycheck-highlighting-mode nil
               flycheck-display-errors-function 'my--flycheck-display-errors-function)
         (add-hook 'js-mode-hook
                   (lambda () (flycheck-mode t)))
-        (add-hook 'php-mode-hook
+        (add-hook 'web-mode-hook
                   (lambda () (flycheck-mode t))))))
-#+END_SRC
-* org-tree-slide
-#+BEGIN_SRC emacs-lisp
-;  (use-package org-tree-slide
-;    :ensure t
-;    :init
-;    (progn
-;      (when (require 'org-tree-slide nil t)
-;        (define-key org-mode-map (kbd "<f8>") 'org-tree-slide-mode)
-;        (define-key org-tree-slide-mode-map (kbd "<f9>")
-;          'org-tree-slide-move-previous-tree)
-;        (define-key org-tree-slide-mode-map (kbd "<f10>")
-;          'org-tree-slide-move-next-tree)
-;        (define-key org-tree-slide-mode-map (kbd "<f11>")
-;          'org-tree-slide-content))))
-#+END_SRC
-* emms
-#+BEGIN_SRC emacs-lisp
-  (use-package emms
-    :ensure t
-    :config
-    (progn 
-      (require 'emms-setup nil t)
-      ;(emms-all)
-      (emms-default-players)
-      ))
 #+END_SRC
 * ox-reveal
 #+BEGIN_SRC emacs-lisp
@@ -634,49 +640,6 @@ scroll-step 1)
           (define-key region-bindings-mode-map "<" 'mc/unmark-next-like-this)
           (define-key region-bindings-mode-map "P" 'mc/skip-to-previous-like-this)
           (define-key region-bindings-mode-map "N" 'mc/skip-to-next-like-this)))))
-#+END_SRC
-* Dired
-#+BEGIN_SRC emacs-lisp
-  (setq dired-recursive-deletes 'always)
-  (setq dired-recursive-copies 'always)
-  (setq dired-dwim-target t)
-  (defun ergoemacs-open-in-external-app ()
-    "Open the current file or dired marked files in external app."
-    (interactive)
-    (let ( doIt
-           (myFileList
-            (cond
-             ((string-equal major-mode "dired-mode") (dired-get-marked-files))
-             (t (list (buffer-file-name))) ) ) )
-
-      (setq doIt (if (<= (length myFileList) 5)
-                     t
-                   (y-or-n-p "Open more than 5 files?") ) )
-
-      (when doIt
-        (cond
-         ((string-equal system-type "windows-nt")
-          (mapc (lambda (fPath) (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" fPath t t)) ) myFileList)
-          )
-         ((string-equal system-type "darwin")
-          (mapc (lambda (fPath) (shell-command (format "open \"%s\"" fPath)) )  myFileList) )
-         ((string-equal system-type "gnu/linux")
-          (mapc (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath)) ) myFileList) ) ) ) ) )
-          
-(defun ergoemacs-open-in-desktop ()
-  "Show current file in desktop (OS's file manager)."
-  (interactive)
-  (cond
-   ((string-equal system-type "windows-nt")
-    (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
-   ((string-equal system-type "darwin") (shell-command "open ."))
-   ((string-equal system-type "gnu/linux")
-    (let ((process-connection-type nil)) (start-process "" nil "xdg-open" "."))
-    ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. ⁖ with nautilus
-    ) ))
-
-  ;(define-key dired-mode-map (kbd "s-o") 'ergoemacs-open-in-external-app)
-  ;(define-key dired-mode-map (kbd "s-O") 'ergoemacs-open-in-desktop)
 #+END_SRC
 * ztree
 #+BEGIN_SRC emacs-lisp
@@ -1018,10 +981,6 @@ scroll-step 1)
     (setq cal-china-x-important-holidays cal-china-x-chinese-holidays)
     (setq calendar-holidays cal-china-x-important-holidays)))
 #+END_SRC
-* php
-#+BEGIN_SRC emacs-lisp
-(use-package php-mode :ensure t)
-#+END_SRC
 * yasnippet
 #+BEGIN_SRC emacs-lisp
   (use-package yasnippet
@@ -1030,6 +989,19 @@ scroll-step 1)
     (progn 
       (yas-global-mode 1)
       (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
+      ))
+#+END_SRC
+* youdao-dictionary
+#+BEGIN_SRC emacs-lisp
+  (use-package youdao-dictionary
+    :ensure t
+    :init 
+    (progn 
+      ;; Enable Cache
+      (setq url-automatic-caching t)
+
+      ;; Example Key binding
+      (global-set-key (kbd "C-c y") 'youdao-dictionary-search-at-point+)
       ))
 #+END_SRC
 * gnus
@@ -1092,147 +1064,52 @@ scroll-step 1)
     ))
 
 #+END_SRC
-* bing-translate-api.el
+* Dired
 #+BEGIN_SRC emacs-lisp
-;;; youdao-translate-api.el --- Use youdao translate api to perform translations
+  (setq dired-recursive-deletes 'always)
+  (setq dired-recursive-copies 'always)
+  (setq dired-dwim-target t)
 
-;; Copyright (C) 2012 zxy
+  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file) ; was dired-advertised-find-file
 
-;; Copyright (C) 2011 zxy
-;; Author: zxy <gcoordinate@gmail.com>
-;; Maintainer: zxy <gcoordinate@gmail.com>
-;; Created: May 2012
-;; Version: 0.1
+  (define-key dired-mode-map (kbd "^") (lambda () (interactive) (find-alternate-file "..")))  ; was dired-up-directory
+  (defun ergoemacs-open-in-external-app ()
+    "Open the current file or dired marked files in external app."
+    (interactive)
+    (let ( doIt
+           (myFileList
+            (cond
+             ((string-equal major-mode "dired-mode") (dired-get-marked-files))
+             (t (list (buffer-file-name))) ) ) )
 
-;; This file is NOT part of Emacs.
-;;
-;; GNU Emacs is free software: you can redistribute it and/or modify it under
-;; the terms of the GNU General Public License as published by the Free
-;; Software Foundation, either version 3 of the License, or (at your option)
-;; any later version.
+      (setq doIt (if (<= (length myFileList) 5)
+                     t
+                   (y-or-n-p "Open more than 5 files?") ) )
 
-;; This program is distributed in the hope that it will be useful, but WITHOUT
-;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-;; more details.
+      (when doIt
+        (cond
+         ((string-equal system-type "windows-nt")
+          (mapc (lambda (fPath) (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" fPath t t)) ) myFileList)
+          )
+         ((string-equal system-type "darwin")
+          (mapc (lambda (fPath) (shell-command (format "open \"%s\"" fPath)) )  myFileList) )
+         ((string-equal system-type "gnu/linux")
+          (mapc (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath)) ) myFileList) ) ) ) ) )
 
-;; You should have received a copy of the GNU General Public License along
-;; with GNU Emacs. If not, see <http://www.gnu.org/licenses/>.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (defun ergoemacs-open-in-desktop ()
+    "Show current file in desktop (OS's file manager)."
+    (interactive)
+    (cond
+     ((string-equal system-type "windows-nt")
+      (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
+     ((string-equal system-type "darwin") (shell-command "open ."))
+     ((string-equal system-type "gnu/linux")
+      (let ((process-connection-type nil)) (start-process "" nil "xdg-open" "."))
+      ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. ⁖ with nautilus
+      ) ))
 
-;; Installation
-;; ============
-;;
-;; (defvar youdaotranslate-keyfrom "your-keyfrom")
-;; (defvar youdaotranslate-key "your-key")
-;; (require youdao-translate-api)
-;;
-
-(require 'url)
-(message (concat "Loading " load-file-name))
-
-;; public var
-
-(defcustom youdaotranslate-service "http://fanyi.youdao.com/openapi.do?"
-  "Service to use for translation."
-  :group 'youdaotranslate
-  :type 'string)
-
-(defcustom youdaotranslate-keyfrom ""
-  "keyfrom to use for translation."
-  :group 'youdaotranslate
-  :type 'string)
-
-(defcustom youdaotranslate-key ""
-  "key to use for translation."
-  :group 'youdaotranslate
-  :type 'string)
-
-(defcustom youdaotranslate-doctype "json"
-  "doctype."
-  :group 'youdaotranslate
-  :type 'string)
-
-(defcustom youdaotranslate-version "1.1"
-  "version."
-  :group 'youdaotranslate
-  :type 'string)
-
-;; private var
-
-(defvar youdaotranslate-history-hash (make-hash-table :test 'equal))
-
-(defvar youdaotranslate-history-text "")
-
-;; defun
-
-(defun youdaotranslate-make-url (text)
-  "Generate the url to send to the translation service."
-  (concat youdaotranslate-service
-          "keyfrom=" youdaotranslate-keyfrom 
-          "&key=" youdaotranslate-key
-          "&type=" "data"
-          "&doctype=" youdaotranslate-doctype
-          "&version=" youdaotranslate-version
-          "&q=" (url-hexify-string text)))
-
-(defun youdaotranslate-url-callback (status)
-  "Switch to the buffer returned by `url-retreive'."
-  ;; (switch-to-buffer (current-buffer))
-  (goto-char (point-min))
-  (if (search-forward-regexp "^$" nil t)
-      ;; (if (search-forward-regexp "\"" nil t)
-      (setq header (buffer-substring (point-min) (point))
-            data (buffer-substring (1+ (point)) (point-max)))
-    ;; unexpected situation, return the whole buffer
-    (setq data (buffer-string)))
-  ;; (message (encode-coding-string (buffer-string) 'utf-8))
-  ;; (setq result (decode-coding-string (buffer-string) 'utf-8))
-  (setq result (decode-coding-string data 'utf-8))
-  (setq result (substring result 2 (- (length result) 1)))
-  (kill-new result)
-  ;; (kill-buffer (current-buffer))
-  (puthash youdaotranslate-history-text result youdaotranslate-history-hash)
-  (message result))
-
-(defun youdaotranslate-region-or-input ()
-  "Translate region or input"
-  (interactive)
-  ;; if marked
-  (if (and mark-active
-           (/= (point) (mark)))
-      (setq youdaotranslate-history-text (buffer-substring (point) (mark)))
-    ;; read text from mini buffer
-    (progn
-      (if (equal nil (current-word))
-          (setq defaultext youdaotranslate-history-text)
-        (setq defaultext (current-word)))
-      (setq youdaotranslate-history-text (read-string (format "[youdaotranslate] text (default %s): " defaultext)
-                                                    nil nil defaultext nil))))
-  ;; read other infor
-  (setq result (gethash youdaotranslate-history-text youdaotranslate-history-hash))
-  (if (and (not (equal "" result))
-           (not (equal nil result)))
-      (message result)
-    (url-retrieve (youdaotranslate-make-url youdaotranslate-history-text) 'youdaotranslate-url-callback)
-    ))
-
-(defun youdaotranslate-show-history ()
-  "Show translate history"
-  (interactive)
-  (with-output-to-temp-buffer "*translate-temp*"
-    (print "<Temp buffer show translate history. Type 'q' to close.>")
-    (print "--------------------------------------------------------")
-    (loop for k being the hash-key of youdaotranslate-history-hash do
-          (print k)
-          (print (gethash k youdaotranslate-history-hash))
-          (print "--------------------------------------------------------"))
-    (switch-to-buffer "*translate-temp*")
-    ))
-
-(provide 'youdao-translate-api)
-
-;;; youdao-translate-api.el ends here
+;(define-key dired-mode-map (kbd "s-o") 'ergoemacs-open-in-external-app)
+;(define-key dired-mode-map (kbd "s-O") 'ergoemacs-open-in-desktop)
 #+END_SRC
 * Load Customize
 #+BEGIN_SRC emacs-lisp

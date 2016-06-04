@@ -3,9 +3,9 @@
 
 ;; ELPA archive repositories and two packages to install by default.
 (setq package-archives
-      '(;("gnu"         . "http://elpa.gnu.org/packages/")
+      '(("gnu"         . "http://elpa.gnu.org/packages/")
         ("org"         . "http://orgmode.org/elpa/")
-        ;("melpa"       . "http://melpa.org/packages/")
+        ("melpa"       . "http://melpa.org/packages/")
         ("popkit"       . "http://elpa.popkit.org/packages/")
         ("marmalade"   . "http://marmalade-repo.org/packages/")))
 (package-initialize)
@@ -26,3 +26,4 @@
   (progn
     (setq emacs-base-dir (file-name-directory (or load-file-name (buffer-file-name))))
     (org-babel-load-file (concat emacs-base-dir "eshion.org"))))
+(put 'dired-find-alternate-file 'disabled nil)
