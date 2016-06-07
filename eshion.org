@@ -229,7 +229,7 @@ scroll-step 1)
         inhibit-startup-echo-area-message t
         ring-bell-function 'ignore
         transient-mark-mode t)
-  (global-hl-line-mode 1)
+  ;(global-hl-line-mode 1)
 #+END_SRC
 ** adjust-opacity
 #+BEGIN_SRC emacs-lisp
@@ -857,9 +857,9 @@ scroll-step 1)
       (expand-file-name (concat emacs-base-dir "scripts/plantuml.jar")))
 
 (add-to-list 'org-structure-template-alist
-             '("dot" "#+BEGIN_SRC dot :file img/dot_img_?.png :cmdline -Kdot -Tpng\n?\n#+END_SRC"))
+             '("dot" "#+BEGIN_SRC dot :file imgs/dot_img_?.png :cmdline -Kdot -Tpng\n?\n#+END_SRC"))
 (add-to-list 'org-structure-template-alist
-             '("puml" "#+BEGIN_SRC plantuml :file img/plantuml_img_?.png  :cmdline -charset UTF-8\n?\n#+END_SRC"))
+             '("puml" "#+BEGIN_SRC plantuml :file imgs/plantuml_img_?.png  :cmdline -charset UTF-8\n?\n#+END_SRC"))
 
 (setq org-confirm-babel-evaluate nil)
 
