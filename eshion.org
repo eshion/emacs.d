@@ -308,6 +308,15 @@ scroll-step 1)
 #+END_SRC
 * company
 #+BEGIN_SRC emacs-lisp
+(use-package find-file-in-project
+    :ensure t
+    :init
+    (progn
+    (global-set-key (kbd "C-x f") 'find-file-in-project)
+      ))
+#+END_SRC
+* company
+#+BEGIN_SRC emacs-lisp
 (use-package company
     :ensure t
     :init
