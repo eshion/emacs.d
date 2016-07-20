@@ -306,7 +306,7 @@ scroll-step 1)
   ;; Allow the same buffer to be open in different frames
   (setq ido-default-buffer-method 'selected-window)))
 #+END_SRC
-* company
+* find-file-in-project
 #+BEGIN_SRC emacs-lisp
 (use-package find-file-in-project
     :ensure t
@@ -324,7 +324,7 @@ scroll-step 1)
       (global-company-mode t)
       (define-key company-active-map (kbd "RET") nil)
       (define-key company-active-map (kbd "ESC") 'company-abort)
-      (auto-completion :disabled-for org git)
+      ;(auto-completion :disabled-for org git)
       (setq company-idle-delay 0.125
             company-minimum-prefix-length 1
             company-require-match nil
