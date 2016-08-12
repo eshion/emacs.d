@@ -464,7 +464,7 @@ scroll-step 1)
 ;    (progn
 ;      (setq evil-want-fine-undo t)
 ;      ;(setq evil-default-state 'insert)
-;      (evil-mode 1)
+;     ;(evil-mode 1)
 ;      (setcdr evil-insert-state-map nil)
 ;      (define-key evil-insert-state-map [escape] 'evil-normal-state)
 ;      (define-key evil-insert-state-map
