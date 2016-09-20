@@ -246,9 +246,9 @@ scroll-step 1)
 #+END_SRC
 ** theme
 #+BEGIN_SRC emacs-lisp
-(use-package monokai-theme
-:ensure t
-:init (load-theme 'monokai t))
+;(use-package monokai-theme
+;:ensure t
+;:init (load-theme 'monokai t))
 #+END_SRC
 ** indent-guide
 #+BEGIN_SRC emacs-lisp
@@ -713,287 +713,8 @@ scroll-step 1)
 
 #+END_SRC
 * Org
-** Various preferences
 #+BEGIN_SRC emacs-lisp
-(setq org-log-done t
-      org-completion-use-ido t
-      org-edit-timestamp-down-means-later t
-      org-agenda-start-on-weekday nil
-      org-agenda-span 14
-      org-agenda-include-diary t
-      org-agenda-window-setup 'current-window
-      org-fast-tag-selection-single-key 'expert
-      org-use-fast-todo-selection t
-      org-export-kill-product-buffer-when-displayed t
-      org-export-with-sub-superscripts '{}
-      org-src-fontify-natively t
-      org-tags-column 80)
-#+END_SRC
-** Standard key bindings
-#+BEGIN_SRC emacs-lisp
-(global-set-key "\C-cl" 'org-store-link)
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cb" 'org-iswitchb)
-#+END_SRC
-** Setup
-#+BEGIN_SRC emacs-lisp
-;; Agenda Setup
-(setq org-agenda-files (quote ("~/personal/GTD/")))
-                               
-;; Refile targets include this file and any file contributing to the agenda - up to 9 levels deep
-(setq org-refile-targets (quote ((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9))))
-
-; Use full outline paths for refile targets - we file directly with IDO
-(setq org-refile-use-outline-path t)
-; Targets complete directly with IDO
-(setq org-outline-path-complete-in-steps nil)
-
-; Allow refile to create parent tasks with confirmation
-(setq org-refile-allow-creating-parent-nodes (quote confirm))
-
-; Use IDO for both buffer and file completion and ido-everywhere to t
-(setq org-completion-use-ido t)
-(setq ido-everywhere t)
-(setq ido-max-directory-size 100000)
-(ido-mode (quote both))
-; Use the current window when visiting files and buffers with ido
-(setq ido-default-file-method 'selected-window)
-(setq ido-default-buffer-method 'selected-window)
-; Use the current window for indirect buffer display
-(setq org-indirect-buffer-display 'current-window)
-
-;;;; Refile settings
-; Exclude DONE state tasks from refile targets
-(defun bh/verify-refile-target ()
-  "Exclude todo keywords with a done state from refile targets"
-  (not (member (nth 2 (org-heading-components)) org-done-keywords)))
-
-(setq org-refile-target-verify-function 'bh/verify-refile-target)
-#+END_SRC
-** TODO settings
-#+BEGIN_SRC emacs-lisp
-;; TODO keywords
-(setq org-todo-keywords
-      (quote ((sequence "TODO(t)" "STARTED(s)" "|" "DONE(d!/!)")
-              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
-
-(setq org-todo-keyword-faces
-      (quote (("TODO" :foreground "red" :weight bold)
-              ("STARTED" :foreground "blue" :weight bold)
-              ("DONE" :foreground "forest green" :weight bold)
-              ("WAITING" :foreground "orange" :weight bold)
-              ("HOLD" :foreground "magenta" :weight bold)
-              ("CANCELLED" :foreground "forest green" :weight bold)
-              ("MEETING" :foreground "forest green" :weight bold)
-              ("PHONE" :foreground "forest green" :weight bold))))
-;; TODO state triggers
-(setq org-todo-state-tags-triggers
-      (quote (("CANCELLED" ("CANCELLED" . t))
-              ("WAITING" ("WAITING" . t))
-              ("HOLD" ("WAITING") ("HOLD" . t))
-              (done ("WAITING") ("HOLD"))
-              ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-              ("STARTED" ("WAITING") ("CANCELLED") ("HOLD"))
-              ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
-#+END_SRC
-** Templates
-#+BEGIN_SRC emacs-lisp
-;; Capture Templates
-(setq org-directory "~/personal/GTD/")
-(setq org-default-notes-file (concat org-directory "inbox.org"))
-
-;; I use C-c c to start capture mode
-(global-set-key (kbd "C-c c") 'org-capture)
-
-(setq org-capture-templates
-      (quote (("n" "New" entry (file "~/personal/GTD/inbox.org") "* %? %t \n %i \n %a")
-              ("t" "Task" entry (file+headline "~/personal/GTD/task.org" "Tasks") "** TODO %?\n %i\n %a")
-              ("c" "Calendar" entry (file+headline "~/personal/GTD/task.org" "Tasks") "** TODO %?\n %i\n %a")
-              ("i" "Idea" entry (file+header "~/personal/GTD/task.org" "Ideas") "** %?\n %i\n %a")
-              ("n" "Note" entry (file "~/personal/GTD/note.org") "* %?\n %i\n %a")
-              ("p" "Project" entry (file "~/personal/GTD/project.org") "** %?\n %i\n %a")
-              ("b" "Bookmark" entry (file+headline "~/personal/GTD/note.org" "Bookmarks")
-	            "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:" :empty-lines 1)
-)))
-
-;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
-;(setq org-capture-templates
-;      (quote (("t" "todo" entry (file "~/personal/doc/refile.org")
-;               "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-;              ("r" "respond" entry (file "~/personal/doc/refile.org")
-;               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-;              ("n" "note" entry (file "~/personal/doc/refile.org")
-;               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-;              ("j" "Journal" entry (file+datetree "~/personal/doc/diary.org")
-;               "* %?\n%U\n" :clock-in t :clock-resume t)
-;              ("w" "org-protocol" entry (file "~/personal/doc/refile.org")
-;               "* TODO Review %c\n%U\n" :immediate-finish t)
-;              ("m" "Meeting" entry (file "~/personal/doc/refile.org")
-;               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-;              ("p" "Phone call" entry (file "~/personal/doc/refile.org")
-;               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-;              ("h" "Habit" entry (file "~/personal/doc/refile.org")
-;               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"<%Y-%m-%d %a .+1d/3d>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
-
-;; Remove empty LOGBOOK drawers on clock out
-(defun bh/remove-empty-drawer-on-clock-out ()
-  (interactive)
-  (save-excursion
-    (beginning-of-line 0)
-    (org-remove-empty-drawer-at (point))))
-
-(add-hook 'org-clock-out-hook 'bh/remove-empty-drawer-on-clock-out 'append)
-#+END_SRC
-** org-babel-load-languages
-#+BEGIN_SRC emacs-lisp
-;; 1. dita
-;; #+BEGIN_SRC ditaa :file ${1:export-file-name} :cmdline -r -s 0.8 
-;; ${0}
-;; #+END_SRC
-;; 2. dot
-;; #+BEGIN_SRC dot :file ${1:export-file-name}.png :cmdline -Kdot -Tpng
-;; title ${0}
-;; #+END_SRC
-;; 3. uml
-;; #+BEGIN_SRC plantuml :file ${1:export-file-name} :cmdline -charset UTF-8
-;; title ${0}
-;; #+END_SRC
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '(;; other Babel languages
-   (ditaa . t)
-   (plantuml . t)
-   (dot . t)
-   ))
-; path settings
-(setq org-plantuml-jar-path
-      (expand-file-name (concat emacs-base-dir "scripts/plantuml.jar")))
-
-(add-to-list 'org-structure-template-alist
-             '("dot" "#+BEGIN_SRC dot :file imgs/dot_img_?.png :cmdline -Kdot -Tpng\n?\n#+END_SRC"))
-(add-to-list 'org-structure-template-alist
-             '("puml" "#+BEGIN_SRC plantuml :file imgs/plantuml_img_?.png  :cmdline -charset UTF-8\n?\n#+END_SRC"))
-
-(setq org-confirm-babel-evaluate nil)
-
-;; preview image
-(add-hook 'org-babel-after-execute-hook 'bh/display-inline-images 'append)
-
-; Make babel results blocks lowercase
-(setq org-babel-results-keyword "results")
-
-(defun bh/display-inline-images ()
-  (condition-case nil
-      (org-display-inline-images)
-    (error nil)))
-#+END_SRC
-** Fonts settings
-#+BEGIN_SRC emacs-lisp
-  ;; -----------------------------------------------------------------------------
-  ;; setting font for mac system
-  ;; -----------------------------------------------------------------------------
-  (if (eq system-type 'darwin)
-      (progn
-        ;; Setting English Font 
-        (set-face-attribute
-         'default nil :font "Monaco 12")
-        ;; Chinese Font 配制中文字体
-        (dolist (charset '(kana han symbol cjk-misc bopomofo))
-          (set-fontset-font (frame-parameter nil 'font)
-                            charset
-                            (font-spec :family "Kaiti SC" :size 14)))
-  ;; Note: you can chang "Kaiti SC" to "Microsoft YaHei" or other fonts
-        ))
-
-
-  ;; -----------------------------------------------------------------------------
-  ;; setting font for gnu/linux system
-  ;; -----------------------------------------------------------------------------
-  (if (eq system-type 'gnu/linux)
-      (progn
-        (if (and (fboundp 'daemonp) (daemonp))
-            (add-hook 'after-make-frame-functions
-                      (lambda (frame)
-                        (with-selected-frame frame
-                          (set-fontset-font "fontset-default"
-                                            'chinese-gbk "WenQuanYi Micro Hei Mono 15"))))
-          (set-fontset-font "fontset-default" 'chinese-gbk "WenQuanYi Micro Hei Mono 15"))
-
-
-        (defun wl-org-column-view-uses-fixed-width-face ()
-          ;; copy from org-faces.el
-          (when (fboundp 'set-face-attribute)
-            ;; Make sure that a fixed-width face is used when we have a column table.
-            (set-face-attribute 'org-column nil
-                                :height (face-attribute 'default :height)
-                                :family (face-attribute 'default :family))))
-
-        (when (and (fboundp 'daemonp) (daemonp))
-          (add-hook 'org-mode-hook 'wl-org-column-view-uses-fixed-width-face))
-        ))
-#+END_SRC
-** Htmlize
-#+BEGIN_SRC emacs-lisp
-(use-package htmlize :ensure t)
-#+END_SRC
-** org-crypt
-#+BEGIN_SRC emacs-lisp
-  (require 'org-crypt)
-  
-  ;; 當被加密的部份要存入硬碟時，自動加密回去
-  (org-crypt-use-before-save-magic)
-  
-  ;; 設定要加密的 tag 標籤為 secret
-  (setq org-crypt-tag-matcher "secret")
-  
-  ;; 避免 secret 這個 tag 被子項目繼承 造成重複加密
-  ;; (但是子項目還是會被加密喔)
-  (setq org-tags-exclude-from-inheritance (quote ("secret")))
-  
-  ;; 用於加密的 GPG 金鑰
-  ;; 可以設定任何 ID 或是設成 nil 來使用對稱式加密 (symmetric encryption)
-  (setq org-crypt-key nil)
-#+END_SRC
-** org-bullets
-#+BEGIN_SRC emacs-lisp
-  (use-package org-bullets
-    :ensure t
-    :init
-    (progn (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))))
-#+END_SRC
-** screenshot
-#+BEGIN_SRC emacs-lisp
-  (defun my-org-screenshot (basename)
-    "Take a screenshot into a time stamped unique-named file in the
-      same directory as the org-buffer and insert a link to this file."
-    (interactive "sScreenshot name: ")
-    (if (equal basename "")
-        (setq basename (format-time-string "%Y%m%d_%H%M%S")))
-    (setq fullpath
-          (concat (file-name-directory (buffer-file-name))
-                  "imgs/"
-                  (file-name-base (buffer-file-name))
-                  "_"
-                  basename
-                  ".png"))
-    (setq relativepath
-          (concat "./imgs/"
-                  (file-name-base (buffer-file-name))
-                  "_"
-                  basename
-                  ".png"))
-    (cond
-     ((string-equal system-type "windows-nt")
-      (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
-     ((string-equal system-type "darwin") (call-process "screencapture" nil nil nil "-s" fullpath))
-     ((string-equal system-type "gnu/linux") (call-process "scrot" nil nil nil "-s" fullpath)
-      ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. ⁖ with nautilus
-      ) )
-    (insert "#+CAPTION:")
-    (insert relativepath)
-    (insert "\n")
-    (insert (concat "[[" relativepath "]]"))
-    (org-display-inline-images))
+(org-babel-load-file (concat emacs-base-dir "org-mode.org"))
 #+END_SRC
 * Cal
 ** cal-china-x
@@ -1009,13 +730,13 @@ scroll-step 1)
 #+END_SRC
 * yasnippet
 #+BEGIN_SRC emacs-lisp
-  (use-package yasnippet
-    :ensure t
-    :init 
-    (progn 
-      (yas-global-mode 1)
-      (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
-      ))
+  ;use-package yasnippet
+  ; :ensure t
+  ; :init 
+  ; (progn 
+  ;   (yas-global-mode 1)
+  ;   (add-hook 'web-mode-hook #'(lambda () (yas-activate-extra-mode 'html-mode)))
+  ;   ))
 #+END_SRC
 * youdao-dictionary
 #+BEGIN_SRC emacs-lisp
@@ -1038,15 +759,26 @@ scroll-step 1)
   (gnus-group-list-all-groups 5)
   )
 
-;; gnus+davmail bug, so I have to use pop3 for davmail
-;; http://permalink.gmane.org/gmane.emacs.gnus.general/83301
-;; but delete all the mails on server is scary
-(setq pop3-leave-mail-on-server t)
-
 (add-hook 'gnus-group-mode-hook
           ;; list all the subscribed groups even they contain zero un-read messages
           (lambda () (local-set-key "o" 'my-gnus-group-list-subscribed-groups ))
           )
+
+(setq-default
+  gnus-summary-line-format "%U%R%z %(%&user-date;  %-15,15f  %B%s%)\n"
+  gnus-user-date-format-alist '((t . "%Y-%m-%d %H:%M"))
+  gnus-summary-thread-gathering-function 'gnus-gather-threads-by-references
+  gnus-sum-thread-tree-false-root ""
+  gnus-sum-thread-tree-indent " "
+  gnus-sum-thread-tree-leaf-with-other "├► "
+  gnus-sum-thread-tree-root ""
+  gnus-sum-thread-tree-single-leaf "╰► "
+  gnus-sum-thread-tree-vertical "│")
+(setq gnus-thread-sort-functions
+      '(
+        (not gnus-thread-sort-by-date)
+        (not gnus-thread-sort-by-number)
+        ))
 
 ;(setq message-send-mail-function 'smtpmail-send-it
 ;      smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil))
@@ -1056,13 +788,31 @@ scroll-step 1)
 ;      smtpmail-smtp-service 587
 ;      smtpmail-local-domain "localhost")
 
-;; @see http://www.fnal.gov/docs/products/emacs/emacs/gnus_3.html#SEC60
-;; QUOTED: If you are using an unthreaded display for some strange reason ...
-;; Yes, when I search email in IMAP folder, emails are not threaded
-(setq gnus-article-sort-functions
-      '((not gnus-article-sort-by-date)
-        (not gnus-article-sort-by-number)
-        ))
+
+;; Fetch only part of the article if we can.  I saw this in someone
+;; else's .gnus
+(setq gnus-read-active-file 'some)
+
+;; Tree view for groups.  I like the organisational feel this has.
+;(add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
+
+;; Threads!  I hate reading un-threaded email -- especially mailing
+;; lists.  This helps a ton!
+(setq gnus-summary-thread-gathering-function
+      'gnus-gather-threads-by-subject)
+
+;; Also, I prefer to see only the top level message.  If a message has
+;; several replies or is part of a thread, only show the first
+;; message.  'gnus-thread-ignore-subject' will ignore the subject and
+;; look at 'In-Reply-To:' and 'References:' headers.
+(setq gnus-thread-hide-subtree t)
+(setq gnus-thread-ignore-subject t)
+
+;(setq mm-text-html-renderer 'eww) 
+
+;stop ask me "how many articles from" and
+;show-me-all-my-mail-all-ways.
+;(setq gnus-large-newsgroup 'nil)
 
 (defun message-select-forwarded-email-tags ()
   "select the <#mml-or-what-ever> tags in message-mode"
@@ -1089,6 +839,15 @@ scroll-step 1)
      )
     ))
 
+#+END_SRC
+* bbdb
+#+BEGIN_SRC emacs-lisp
+;  (use-package bbdb
+;    :ensure t
+;    :init 
+;    (progn
+      ;(bbdb-initialize)
+;      ))
 #+END_SRC
 * Dired
 #+BEGIN_SRC emacs-lisp
