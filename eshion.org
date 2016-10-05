@@ -246,9 +246,9 @@ scroll-step 1)
 #+END_SRC
 ** theme
 #+BEGIN_SRC emacs-lisp
-;(use-package monokai-theme
-;:ensure t
-;:init (load-theme 'monokai t))
+(use-package atom-one-dark-theme
+  :ensure t
+  :init (load-theme 'atom-one-dark t))
 #+END_SRC
 ** indent-guide
 #+BEGIN_SRC emacs-lisp
@@ -279,12 +279,12 @@ scroll-step 1)
 #+END_SRC
 ** which-key
 #+BEGIN_SRC emacs-lisp
-  (use-package which-key
-    :ensure t
-    :init 
-    (progn
-      (which-key-mode)
-      ))
+(use-package which-key
+  :ensure t
+  :init
+  (progn
+    (require 'which-key)
+    (which-key-mode)))
 #+END_SRC
 * IDO
 #+BEGIN_SRC emacs-lisp
@@ -610,37 +610,37 @@ scroll-step 1)
 #+END_SRC
 * smartparens
 #+BEGIN_SRC emacs-lisp
-  (use-package smartparens
-    :ensure t
-    :init
-    (progn
-      (require 'smartparens-config)
-      (defun sp-pair-on-newline (id action context)
-        "Put trailing pair on newline and return to point."
-        (save-excursion
-          (newline)
-          (indent-according-to-mode)))
+ (use-package smartparens
+   :ensure t
+   :init
+   (progn
+     (require 'smartparens-config)
+     (defun sp-pair-on-newline (id action context)
+       "Put trailing pair on newline and return to point."
+       (save-excursion
+         (newline)
+         (indent-according-to-mode)))
+ 
+     (defun sp-pair-on-newline-and-indent (id action context)
+       "Open a new brace or bracket expression, with relevant newlines and indent. "
+       (sp-pair-on-newline id action context)
+       (indent-according-to-mode))
+ 
+     (sp-pair "{" nil :post-handlers
+              '(:add ((lambda (id action context)
+                        (sp-pair-on-newline-and-indent id action context)) "RET")))
+     (sp-pair "[" nil :post-handlers
+              '(:add ((lambda (id action context)
+                        (sp-pair-on-newline-and-indent id action context)) "RET")))
+ 
+     (sp-local-pair '(markdown-mode gfm-mode) "*" "*"
+                    :unless '(sp-in-string-p)
+                    :actions '(insert wrap))
+ 
+     (smartparens-global-mode t)
+     (setq sp-highlight-pair-overlay nil)
+))
 
-      (defun sp-pair-on-newline-and-indent (id action context)
-        "Open a new brace or bracket expression, with relevant newlines and indent. "
-        (sp-pair-on-newline id action context)
-        (indent-according-to-mode))
-
-      (sp-pair "{" nil :post-handlers
-               '(:add ((lambda (id action context)
-                         (sp-pair-on-newline-and-indent id action context)) "RET")))
-      (sp-pair "[" nil :post-handlers
-               '(:add ((lambda (id action context)
-                         (sp-pair-on-newline-and-indent id action context)) "RET")))
-
-      (sp-local-pair '(markdown-mode gfm-mode) "*" "*"
-                     :unless '(sp-in-string-p)
-                     :actions '(insert wrap))
-
-      (dolist (mode '(coffee-mode shell-mode))
-        (add-to-list 'sp-autoescape-string-quote-if-empty mode))
-      (setq sp-highlight-pair-overlay nil)
-      (smartparens-global-mode t)))
 #+END_SRC
 * multiple cursors
 #+BEGIN_SRC emacs-lisp
