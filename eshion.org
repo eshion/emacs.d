@@ -133,6 +133,8 @@
   (fset 'yes-or-no-p 'y-or-n-p)
   ;; max kill-ring
   (setq kill-ring-max 200)
+  ;; speedbar disable auto update
+  (set 'speedbar-update-flag nil)
 #+END_SRC
 ** Switching Next/Previous User Buffers
 #+BEGIN_SRC emacs-lisp
@@ -286,6 +288,15 @@ scroll-step 1)
     (require 'which-key)
     (which-key-mode)))
 #+END_SRC
+** chinese-fonts-setup
+#+BEGIN_SRC emacs-lisp
+(use-package chinese-fonts-setup
+  :ensure t
+  :init
+  (progn
+    (require 'chinese-fonts-setup)
+    (chinese-fonts-setup-enable)))
+#+END_SRC
 * IDO
 #+BEGIN_SRC emacs-lisp
   ;; Use C-f during file selection to switch to regular find-file
@@ -310,11 +321,12 @@ scroll-step 1)
 * find-file-in-project
 #+BEGIN_SRC emacs-lisp
 (use-package find-file-in-project
-    :ensure t
-    :init
-    (progn
+  :ensure t
+  :init
+  (progn
     (global-set-key (kbd "C-x f") 'find-file-in-project)
-      ))
+    (global-set-key (kbd "C-x F") 'find-file-in-current-directory)
+    ))
 #+END_SRC
 * company
 #+BEGIN_SRC emacs-lisp
@@ -458,109 +470,110 @@ scroll-step 1)
 #+END_SRC
 * evil
 #+BEGIN_SRC emacs-lisp
-;  (use-package evil
-;    :ensure t
-;    :init
-;    (progn
-;      (setq evil-want-fine-undo t)
-;      ;(setq evil-default-state 'insert)
-;     ;(evil-mode 1)
-;      (setcdr evil-insert-state-map nil)
-;      (define-key evil-insert-state-map [escape] 'evil-normal-state)
-;      (define-key evil-insert-state-map
-;        (read-kbd-macro evil-toggle-key) 'evil-emacs-state))
-;
-;
-;    ;;;; Support
-;    (defmacro without-evil-mode (&rest do-this)
-;      ;; Check if evil-mode is on, and disable it temporarily
-;      `(let ((evil-mode-is-on (evil-mode?)))
-;         (if evil-mode-is-on
-;             (disable-evil-mode))
-;         (ignore-errors
-;           ,@do-this)
-;         (if evil-mode-is-on
-;             (enable-evil-mode))))
-;
-;    (defmacro evil-mode? ()
-;      "Checks if evil-mode is active. Uses Evil's state to check."
-;      `evil-state)
-;
-;    (defmacro disable-evil-mode ()
-;      "Disable evil-mode with visual cues."
-;      `(progn
-;         (evil-mode 0)
-;         (message "Evil mode disabled")))
-;
-;    (defmacro enable-evil-mode ()
-;      "Enable evil-mode with visual cues."
-;      `(progn
-;         (evil-mode 1)
-;         (message "Evil mode enabled")))
-;
-;  ;;;; Clipboard bypass
-;
-;    ;; delete: char
-;    (evil-define-operator evil-destroy-char (beg end type register yank-handler)
-;      :motion evil-forward-char
-;      (evil-delete-char beg end type ?_))
-;
-;    ;; delete: char (backwards)
-;    (evil-define-operator evil-destroy-backward-char (beg end type register yank-handler)
-;      :motion evil-forward-char
-;      (evil-delete-backward-char beg end type ?_))
-;
-;    ;; delete: text object
-;    (evil-define-operator evil-destroy (beg end type register yank-handler)
-;      "Vim's 's' without clipboard."
-;      (evil-delete beg end type ?_ yank-handler))
-;
-;    ;; delete: to end of line
-;    (evil-define-operator evil-destroy-line (beg end type register yank-handler)
-;      :motion nil
-;      :keep-visual t
-;      (interactive "<R><x>")
-;      (evil-delete-line beg end type ?_ yank-handler))
-;
-;    ;; delete: whole line
-;    (evil-define-operator evil-destroy-whole-line (beg end type register yank-handler)
-;      :motion evil-line
-;      (interactive "<R><x>")
-;      (evil-delete-whole-line beg end type ?_ yank-handler))
-;
-;    ;; change: text object
-;    (evil-define-operator evil-destroy-change (beg end type register yank-handler delete-func)
-;      (evil-change beg end type ?_ yank-handler delete-func))
-;
-;    ;; paste: before
-;    (defun evil-destroy-paste-before ()
-;      (interactive)
-;      (without-evil-mode
-;       (delete-region (point) (mark))
-;       (evil-paste-before 1)))
-;
-;    ;; paste: after
-;    (defun evil-destroy-paste-after ()
-;      (interactive)
-;      (without-evil-mode
-;       (delete-region (point) (mark))
-;       (evil-paste-after 1)))
-;
-;    ;; paste: text object
-;    (evil-define-operator evil-destroy-replace (beg end type register yank-handler)
-;      (evil-destroy beg end type register yank-handler)
-;      (evil-paste-before 1 register))
-;
-;
-;    ;; Clipboard bypass key rebindings
-;    (define-key evil-normal-state-map "s" 'evil-destroy)
-;    (define-key evil-normal-state-map "S" 'evil-destroy-line)
-;    (define-key evil-normal-state-map "c" 'evil-destroy-change)
-;    (define-key evil-normal-state-map "x" 'evil-destroy-char)
-;    (define-key evil-normal-state-map "X" 'evil-destroy-whole-line)
-;    (define-key evil-normal-state-map "Y" 'evil-copy-to-end-of-line)
-;    (define-key evil-visual-state-map "P" 'evil-destroy-paste-before)
-;    (define-key evil-visual-state-map "p" 'evil-destroy-paste-after))
+(use-package evil
+  :ensure t
+  :init
+  (progn
+    (require 'evil)
+    (setq evil-want-fine-undo t)
+    ;(setq evil-default-state 'insert)
+   ;(evil-mode 1)
+    (setcdr evil-insert-state-map nil)
+    (define-key evil-insert-state-map [escape] 'evil-normal-state)
+    (define-key evil-insert-state-map
+      (read-kbd-macro evil-toggle-key) 'evil-emacs-state))
+
+
+  ;;;; Support
+  (defmacro without-evil-mode (&rest do-this)
+    ;; Check if evil-mode is on, and disable it temporarily
+    `(let ((evil-mode-is-on (evil-mode?)))
+       (if evil-mode-is-on
+           (disable-evil-mode))
+       (ignore-errors
+         ,@do-this)
+       (if evil-mode-is-on
+           (enable-evil-mode))))
+
+  (defmacro evil-mode? ()
+    "Checks if evil-mode is active. Uses Evil's state to check."
+    `evil-state)
+
+  (defmacro disable-evil-mode ()
+    "Disable evil-mode with visual cues."
+    `(progn
+       (evil-mode 0)
+       (message "Evil mode disabled")))
+
+  (defmacro enable-evil-mode ()
+    "Enable evil-mode with visual cues."
+    `(progn
+       (evil-mode 1)
+       (message "Evil mode enabled")))
+
+;;;; Clipboard bypass
+
+  ;; delete: char
+  (evil-define-operator evil-destroy-char (beg end type register yank-handler)
+    :motion evil-forward-char
+    (evil-delete-char beg end type ?_))
+
+  ;; delete: char (backwards)
+  (evil-define-operator evil-destroy-backward-char (beg end type register yank-handler)
+    :motion evil-forward-char
+    (evil-delete-backward-char beg end type ?_))
+
+  ;; delete: text object
+  (evil-define-operator evil-destroy (beg end type register yank-handler)
+    "Vim's 's' without clipboard."
+    (evil-delete beg end type ?_ yank-handler))
+
+  ;; delete: to end of line
+  (evil-define-operator evil-destroy-line (beg end type register yank-handler)
+    :motion nil
+    :keep-visual t
+    (interactive "<R><x>")
+    (evil-delete-line beg end type ?_ yank-handler))
+
+  ;; delete: whole line
+  (evil-define-operator evil-destroy-whole-line (beg end type register yank-handler)
+    :motion evil-line
+    (interactive "<R><x>")
+    (evil-delete-whole-line beg end type ?_ yank-handler))
+
+  ;; change: text object
+  (evil-define-operator evil-destroy-change (beg end type register yank-handler delete-func)
+    (evil-change beg end type ?_ yank-handler delete-func))
+
+  ;; paste: before
+  (defun evil-destroy-paste-before ()
+    (interactive)
+    (without-evil-mode
+     (delete-region (point) (mark))
+     (evil-paste-before 1)))
+
+  ;; paste: after
+  (defun evil-destroy-paste-after ()
+    (interactive)
+    (without-evil-mode
+     (delete-region (point) (mark))
+     (evil-paste-after 1)))
+
+  ;; paste: text object
+  (evil-define-operator evil-destroy-replace (beg end type register yank-handler)
+    (evil-destroy beg end type register yank-handler)
+    (evil-paste-before 1 register))
+
+
+  ;; Clipboard bypass key rebindings
+  (define-key evil-normal-state-map "s" 'evil-destroy)
+  (define-key evil-normal-state-map "S" 'evil-destroy-line)
+  (define-key evil-normal-state-map "c" 'evil-destroy-change)
+  (define-key evil-normal-state-map "x" 'evil-destroy-char)
+  (define-key evil-normal-state-map "X" 'evil-destroy-whole-line)
+  (define-key evil-normal-state-map "Y" 'evil-copy-to-end-of-line)
+  (define-key evil-visual-state-map "P" 'evil-destroy-paste-before)
+  (define-key evil-visual-state-map "p" 'evil-destroy-paste-after))
 #+END_SRC
 * flycheck
 #+BEGIN_SRC emacs-lisp
@@ -728,6 +741,12 @@ scroll-step 1)
     (setq cal-china-x-important-holidays cal-china-x-chinese-holidays)
     (setq calendar-holidays cal-china-x-important-holidays)))
 #+END_SRC
+* ace-jump-mode
+#+begin_src emacs-lisp
+  (use-package ace-jump-mode
+    :ensure t
+    :init (define-key global-map (kbd "C-c SPC") 'ace-jump-mode))
+#+end_src
 * yasnippet
 #+BEGIN_SRC emacs-lisp
   ;use-package yasnippet
@@ -842,12 +861,80 @@ scroll-step 1)
 #+END_SRC
 * bbdb
 #+BEGIN_SRC emacs-lisp
-;  (use-package bbdb
-;    :ensure t
-;    :init 
-;    (progn
-      ;(bbdb-initialize)
-;      ))
+(use-package bbdb
+  :config
+
+  (use-package gnus
+    :ensure nil)
+
+  (use-package message
+    :ensure nil)
+
+  (use-package bbdb-gnus
+    :ensure bbdb
+    :config
+    (defun eh-bbdb-insinuate-gnus ()
+      "BBDB setting for gnus, See `bbdb-insinuate-gnus' for details."
+      (define-key gnus-summary-mode-map ":" 'bbdb-mua-display-sender)
+      (define-key gnus-article-mode-map ":" 'bbdb-mua-display-sender)
+      (define-key gnus-summary-mode-map ";" 'bbdb-mua-edit-field)
+      (define-key gnus-article-mode-map ";" 'bbdb-mua-edit-field))
+
+    (add-hook 'gnus-startup-hook 'eh-bbdb-insinuate-gnus))
+
+;  (use-package bbdb-vcard)
+;  (use-package bbdb-csv-import)
+
+;  (use-package bbdb-android
+;    :config
+;    (defun eh-bbdb-keybinding ()
+;      (bbdb-handy-keybinding-setup)
+;      (define-key bbdb-mode-map "c" 'eh-bbdb-create)
+;      (define-key bbdb-mode-map "M" 'bbdb-merge-records)
+;      (define-key bbdb-mode-map (kbd "x e") 'bbdb-android-export)
+;      (define-key bbdb-mode-map (kbd "x i") 'bbdb-android-import)
+;      (define-key bbdb-mode-map (kbd "x r") 'bbdb-android-import-from-radicale))
+;    (add-hook 'bbdb-mode-hook 'eh-bbdb-keybinding))
+
+  (use-package bbdb-handy
+    :config
+    (define-key message-mode-map "\C-cb" 'bbdb-handy)
+    (define-key message-mode-map "\t" 'bbdb-handy-message-tab))
+
+  (setq bbdb-file "~/contacts/contacts.bbdb"
+        bbdb-phone-style nil
+        bbdb-pop-up-window-size 0.3
+        bbdb-mua-pop-up-window-size 1.0
+        bbdb-mua-update-interactive-p '(query . create)  ;; Invoking bbdb interactively
+        bbdb-message-all-addresses t
+        bbdb-mua-summary-mark nil
+        bbdb-completion-list t
+        bbdb-complete-mail-allow-cycling t
+        bbdb-layout 'multi-line
+        bbdb-pop-up-layout 'multi-line
+        bbdb-mua-pop-up nil
+        bbdb-default-country "China"
+        bbdb-dial-function 'bbdb-android-dia-with-adb)
+
+  (setq bbdb-vcard-name-imported-priority '(formated-name first-last bbdb-vcard-generate-bbdb-name)
+        bbdb-vcard-skip-on-import '("^X-GSM-" "^X-RADICALE-" "^X-CONTACTSYNC-" "^PRODID" "^UID")
+        bbdb-vcard-import-translation-table '(("CELL\\|CAR" . "cell")
+                                              ("WORK\\|pref" . "work")
+                                              ("DOM\\|HOME" . "home")))
+
+  ;; initialization
+  ;; (bbdb-initialize 'gnus 'message)
+  ;; (bbdb-mua-auto-update-init 'gnus 'message)
+  (bbdb-initialize)
+
+  ;; Push email to message-mode
+  (defun eh-bbdb-create ()
+    (interactive)
+    (let ((name (bbdb-read-string "联系人名称: "))
+          (mail (bbdb-split 'mail (bbdb-read-string "电子邮件: ")))
+          (phone (list (vector "work" (bbdb-read-string "电话号码: ")))))
+      (bbdb-create-internal name nil nil nil mail phone)
+      (bbdb name))))
 #+END_SRC
 * Dired
 #+BEGIN_SRC emacs-lisp
