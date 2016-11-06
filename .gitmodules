@@ -1,3 +1,6 @@
 [submodule "lib/reveal.js"]
 	path = lib/reveal.js
 	url = https://github.com/hakimel/reveal.js/
+[submodule "src/org-mime"]
+	path = src/org-mime
+	url = https://github.com/redguardtoo/org-mime

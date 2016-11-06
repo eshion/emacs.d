@@ -476,14 +476,32 @@ scroll-step 1)
   (progn
     (require 'evil)
     (setq evil-want-fine-undo t)
-    ;(setq evil-default-state 'insert)
-   ;(evil-mode 1)
+    (setq evil-emacs-state-cursor 'bar)
+    (setq evil-default-state 'emacs)
+    (evil-mode 1)
     (setcdr evil-insert-state-map nil)
     (define-key evil-insert-state-map [escape] 'evil-normal-state)
     (define-key evil-insert-state-map
       (read-kbd-macro evil-toggle-key) 'evil-emacs-state))
 
-
+(mapc (lambda (r) (evil-set-initial-state (car r) (cdr r)))
+        '((compilation-mode       . normal)
+          (help-mode              . normal)
+          (message-mode           . normal)
+          (debugger-mode          . normal)
+          (image-mode             . normal)
+          (doc-view-mode          . normal)
+          (eww-mode               . normal)
+          (tabulated-list-mode    . emacs)
+          (profile-report-mode    . emacs)
+          (Info-mode              . emacs)
+          (view-mode              . emacs)
+          (comint-mode            . emacs)
+          (cider-repl-mode        . emacs)
+          (term-mode              . emacs)
+          (calendar-mode          . emacs)
+          (Man-mode               . emacs)
+          (grep-mode              . emacs)))
   ;;;; Support
   (defmacro without-evil-mode (&rest do-this)
     ;; Check if evil-mode is on, and disable it temporarily
@@ -655,30 +673,14 @@ scroll-step 1)
 ))
 
 #+END_SRC
-* multiple cursors
+* multiple edit
 #+BEGIN_SRC emacs-lisp
-  (use-package multiple-cursors
-    :ensure t
-    :init 
-    (progn
-      (use-package region-bindings-mode
-        :ensure t
-        :init
-        (progn
-          (require 'region-bindings-mode)
-          (region-bindings-mode-enable)
-          ;Binding mouse events
-          (global-unset-key (kbd "M-<down-mouse-1>"))
-          (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
-
-          (define-key region-bindings-mode-map "a" 'mc/mark-all-like-this)
-          (define-key region-bindings-mode-map "p" 'mc/mark-previous-like-this)
-          (define-key region-bindings-mode-map "n" 'mc/mark-next-like-this)
-          (define-key region-bindings-mode-map "m" 'mc/mark-more-like-this-extended)
-          (define-key region-bindings-mode-map ">" 'mc/unmark-previous-like-this)
-          (define-key region-bindings-mode-map "<" 'mc/unmark-next-like-this)
-          (define-key region-bindings-mode-map "P" 'mc/skip-to-previous-like-this)
-          (define-key region-bindings-mode-map "N" 'mc/skip-to-next-like-this)))))
+(use-package evil-multiedit
+  :ensure t
+  :init 
+  (progn
+    (require 'evil-multiedit)
+    (evil-multiedit-default-keybinds)))
 #+END_SRC
 * ztree
 #+BEGIN_SRC emacs-lisp
@@ -728,6 +730,7 @@ scroll-step 1)
 * Org
 #+BEGIN_SRC emacs-lisp
 (org-babel-load-file (concat emacs-base-dir "org-mode.org"))
+(setq org-file-apps org-file-apps-defaults-macosx)
 #+END_SRC
 * Cal
 ** cal-china-x
@@ -750,11 +753,11 @@ scroll-step 1)
     (require 'chinese-fonts-setup)
     ))
 #+END_SRC
-* ace-jump-mode
+* evil-easymotion
 #+begin_src emacs-lisp
-  (use-package ace-jump-mode
+  (use-package evil-easymotion
     :ensure t
-    :init (define-key global-map (kbd "C-c SPC") 'ace-jump-mode))
+    :init (evilem-default-keybindings "SPC"))
 #+end_src
 * yasnippet
 #+BEGIN_SRC emacs-lisp
@@ -993,19 +996,37 @@ scroll-step 1)
                 (define-key dired-mode-map "\C-co" 'ergoemacs-open-in-external-app)
                 (define-key dired-mode-map "\C-cO" 'ergoemacs-open-in-desktop)))
 #+END_SRC
-* sr-speedbar
+* all-the-icons
 #+BEGIN_SRC emacs-lisp
-;(use-package sr-speedbar
-;  :ensure t
-;  :init 
-;  (progn
-    ;(require 'sr-speedbar)
-    (global-set-key (kbd "<C-f12>") 'sr-speedbar-toggle)
-    (setq sr-speedbar-skip-other-window-p t)
-    (setq sr-speedbar-right-side nil)
-    (setq sr-speedbar-auto-refresh nil)
-    (setq speedbar-show-unknown-files t)
-;    ))
+(use-package all-the-icons
+  :ensure t
+  :init 
+  (progn
+  ;;fonts https://github.com/domtronn/all-the-icons.el/tree/master/fonts
+    (require 'all-the-icons)
+    ))
+#+END_SRC
+* neotree
+#+BEGIN_SRC emacs-lisp
+(use-package neotree
+  :ensure t
+  :init 
+  (progn
+    (require 'neotree)
+    (setq neo-theme (if window-system 'icons 'arrow))
+    (global-set-key (kbd "<C-f12>") 'neotree-toggle)
+    ))
+#+END_SRC
+* evil-escape
+#+BEGIN_SRC emacs-lisp
+(use-package evil-escape
+  :ensure t
+  :init 
+  (progn
+    (evil-escape-mode)
+    (setq-default evil-escape-key-sequence "jk")
+    (setq-default evil-escape-delay 0.2)
+    ))
 #+END_SRC
 * Load Customize
 #+BEGIN_SRC emacs-lisp
