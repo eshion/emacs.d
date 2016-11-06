@@ -1028,6 +1028,16 @@ scroll-step 1)
     (setq-default evil-escape-delay 0.2)
     ))
 #+END_SRC
+* org-download
+#+BEGIN_SRC emacs-lisp
+(use-package org-download
+  :ensure t
+  :init 
+  (progn
+  (setq-default org-download-image-dir "~/personal/org/img")
+  (org-download-enable)
+    ))
+#+END_SRC
 * Load Customize
 #+BEGIN_SRC emacs-lisp
 (load custom-file 'noerror)
