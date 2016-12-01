@@ -635,7 +635,7 @@ scroll-step 1)
     :ensure t
     :init
     (progn
-      (setq org-reveal-root "file://~/emacs.d/lib/reveal.js/")
+      (setq org-reveal-root "file:///Users/eshion/emacs.d/lib/reveal.js/")
       ;(setq org-reveal-root "http://cdn.bootcss.com/reveal.js/3.3.0/")
       (setq org-reveal-hlevel 2)))
 #+END_SRC
@@ -731,6 +731,8 @@ scroll-step 1)
 #+BEGIN_SRC emacs-lisp
 (org-babel-load-file (concat emacs-base-dir "org-mode.org"))
 (setq org-file-apps org-file-apps-defaults-macosx)
+(setq org-src-tab-acts-natively t)
+(use-package htmlize :ensure t)
 #+END_SRC
 * Cal
 ** cal-china-x
@@ -1038,6 +1040,29 @@ scroll-step 1)
   (org-download-enable)
     ))
 #+END_SRC
+* vue-mode
+#+BEGIN_SRC emacs-lisp
+(use-package vue-mode
+  :ensure t
+  :init 
+  (progn
+    ))
+#+END_SRC
+
+* eslint-fix
+#+BEGIN_SRC emacs-lisp
+(use-package eslint-fix
+  :ensure t
+  :init 
+  (progn
+    (eval-after-load 'js-mode
+      '(add-hook 'js-mode-hook (lambda () (add-hook 'after-save-hook 'eslint-fix nil t))))
+
+    (eval-after-load 'js2-mode
+      '(add-hook 'js2-mode-hook (lambda () (add-hook 'after-save-hook 'eslint-fix nil t))))
+    ))
+#+END_SRC
+
 * Load Customize
 #+BEGIN_SRC emacs-lisp
 (load custom-file 'noerror)
