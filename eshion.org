@@ -1080,6 +1080,7 @@ scroll-step 1)
       '(add-hook 'js2-mode-hook (lambda () (add-hook 'after-save-hook 'eslint-fix nil t))))
     ))
 #+END_SRC
+
 * clean-mode-line
 #+BEGIN_SRC emacs-lisp
 (defvar mode-line-cleaner-alist
