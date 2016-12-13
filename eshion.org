@@ -437,25 +437,25 @@ scroll-step 1)
 #+END_SRC
 * tern
 #+BEGIN_SRC emacs-lisp
-  (use-package tern
-    :ensure t
-    :config
-    (progn 
-      (setq tern-command (append tern-command '("--no-port-file")))
-      (add-hook 'js-mode-hook (lambda () (tern-mode t)))
-      ))
+ ; (use-package tern
+ ;   :ensure t
+ ;   :config
+ ;   (progn 
+ ;     (setq tern-command (append tern-command '("--no-port-file")))
+ ;     (add-hook 'js-mode-hook (lambda () (tern-mode t)))
+ ;     ))
 #+END_SRC
 * company-tern
 #+BEGIN_SRC emacs-lisp
-  (use-package company-tern
-    :ensure t
-    :init
-    (progn
-      (add-hook 'js-mode-hook
-                (lambda ()
-                  (set (make-local-variable 'company-backends)
-                       '((company-tern)))))
-      ))
+ ; (use-package company-tern
+ ;   :ensure t
+ ;   :init
+ ;   (progn
+ ;     (add-hook 'js-mode-hook
+ ;               (lambda ()
+ ;                 (set (make-local-variable 'company-backends)
+ ;                      '((company-tern)))))
+ ;     ))
 #+END_SRC
 * emmet-mode
 #+BEGIN_SRC emacs-lisp
@@ -684,9 +684,9 @@ scroll-step 1)
 #+END_SRC
 * ztree
 #+BEGIN_SRC emacs-lisp
-  (use-package ztree
-    :ensure t
-      )
+ ; (use-package ztree
+ ;   :ensure t
+ ;     )
 #+END_SRC
 * Auto Sync
 #+BEGIN_SRC emacs-lisp
