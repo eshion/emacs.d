@@ -17,7 +17,7 @@
 (setq backup-directory-alist
       `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+      `((".*" ,temporary-file-directory t)) create-lockfiles nil)
 
 ;;varsion control
 (setq version-control 1)
@@ -30,8 +30,10 @@
 #+END_SRC
 ** History
 #+BEGIN_SRC emacs-lisp
-(require 'recentf)
-(recentf-mode 1)
+;; Recentf mode changes
+(setq recentf-max-saved-items 1000
+      recentf-exclude '("/tmp/" "/ssh:"))
+(recentf-mode)
 #+END_SRC
 * Helper functions
 #+BEGIN_SRC emacs-lisp
@@ -119,22 +121,24 @@
 #+END_SRC
 * Editing
 #+BEGIN_SRC emacs-lisp
-  ;; Delete marked text on typing
-  (delete-selection-mode t)
-  ;; Don't use tabs for indent; replace tabs with two spaces.
-  (setq-default tab-width 2)
-  (setq-default indent-tabs-mode nil)
-  (setq-default js-indent-level 2)
-  ;; newline-and-indent
-  (global-set-key (kbd "RET") 'newline-and-indent)
-  ;; Show matching parens
-  (show-paren-mode 1)
-  ;; yes/no to y/n
-  (fset 'yes-or-no-p 'y-or-n-p)
-  ;; max kill-ring
-  (setq kill-ring-max 200)
-  ;; speedbar disable auto update
-  (set 'speedbar-update-flag nil)
+;; Delete marked text on typing
+(delete-selection-mode t)
+;; Don't use tabs for indent; replace tabs with two spaces.
+(setq-default tab-width 2)
+(setq-default indent-tabs-mode nil)
+(setq-default js-indent-level 2)
+;; newline-and-indent
+(global-set-key (kbd "RET") 'newline-and-indent)
+;; Show matching parens
+(show-paren-mode 1)
+;; yes/no to y/n
+(fset 'yes-or-no-p 'y-or-n-p)
+;; max kill-ring
+(setq kill-ring-max 200)
+;; speedbar disable auto update
+(set 'speedbar-update-flag nil)
+;; built-in incremental search, space between words stands for .*; 
+(setq search-whitespace-regexp ".*?")
 #+END_SRC
 ** Switching Next/Previous User Buffers
 #+BEGIN_SRC emacs-lisp
@@ -202,38 +206,49 @@ scroll-step 1)
 #+END_SRC
 * Mac
 #+BEGIN_SRC emacs-lisp
-  (when (memq window-system '(mac ns))
-    (progn
-      (use-package exec-path-from-shell
-        :ensure t
-        :config
-        (progn 
-          (exec-path-from-shell-initialize)
-          ))
-      ))
+(when (memq window-system '(mac ns))
+  (progn
+    (use-package exec-path-from-shell
+      :ensure t
+      :config
+      (progn 
+        (exec-path-from-shell-initialize)
+        ))
+    ; (setq ns-use-native-fullscreen nil)
+    ))
 #+END_SRC
 * GUI
 ** Window size and features
 #+BEGIN_SRC emacs-lisp
-  (when window-system
-  ;(tooltip-mode -1)
-    (tool-bar-mode -1)
-    (menu-bar-mode -1)
-    (scroll-bar-mode -1))
+;; initial window
+(setq initial-frame-alist
+      '((width . 102)   ; characters in a line
+        (height . 54))) ; number of lines
 
-  (setq frame-title-format
-        '((:eval (if (buffer-file-name)
-                     (abbreviate-file-name (buffer-file-name))
-                   "%b"))))
-  (setq-default cursor-type 'bar)
-  (setq visible-bell t
-        echo-keystrokes 0.1
-        ;blink-cursor-mode nil
-        inhibit-startup-message t
-        inhibit-startup-echo-area-message t
-        ring-bell-function 'ignore
-        transient-mark-mode t)
-  ;(global-hl-line-mode 1)
+;; sebsequent frame
+(setq default-frame-alist
+      '((width . 100)   ; characters in a line
+        (height . 52))) ; number of lines
+(when window-system
+  ;(tooltip-mode -1)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1))
+
+(setq frame-title-format
+      '((:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
+(setq-default cursor-type 'bar)
+(setq visible-bell t
+      echo-keystrokes 0.1
+     ;blink-cursor-mode nil
+      inhibit-startup-message t
+      inhibit-startup-echo-area-message t
+      ring-bell-function 'ignore
+      transient-mark-mode t)
+     ;(global-hl-line-mode 1)
+(setq recenter-positions '(top middle bottom))
 #+END_SRC
 ** adjust-opacity
 #+BEGIN_SRC emacs-lisp
@@ -283,10 +298,15 @@ scroll-step 1)
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
   :ensure t
+  :defer t
+  :diminish which-key-mode
   :init
-  (progn
-    (require 'which-key)
-    (which-key-mode)))
+  (setq which-key-sort-order 'which-key-key-order-alpha)
+  :bind* (("M-m ?" . which-key-show-top-level))
+  :config
+  (which-key-mode)
+  (which-key-add-key-based-replacements
+    "M-m ?" "top level bindings"))
 #+END_SRC
 ** chinese-fonts-setup
 #+BEGIN_SRC emacs-lisp
@@ -297,26 +317,48 @@ scroll-step 1)
     (require 'chinese-fonts-setup)
     (chinese-fonts-setup-enable)))
 #+END_SRC
+** diminish
+#+begin_src emacs-lisp
+(use-package diminish
+  :ensure t
+  :demand t
+  :diminish (visual-line-mode . "ω")
+  :diminish hs-minor-mode
+  :diminish abbrev-mode
+  :diminish auto-fill-function
+  :diminish subword-mode)
+#+end_src
+* ediff
+#+begin_src emacs-lisp
+(setq ediff-window-setup-function 'ediff-setup-windows-plain
+      ediff-split-window-function 'split-window-horizontally)
+#+end_src
+* tramp
+#+begin_src emacs-lisp
+(setq tramp-default-method "ssh"
+      tramp-backup-directory-alist backup-directory-alist
+      tramp-ssh-controlmaster-options "ssh")
+#+end_src
 * IDO
 #+BEGIN_SRC emacs-lisp
-  ;; Use C-f during file selection to switch to regular find-file
-  (ido-mode t)
-  (ido-everywhere t)
-  (setq ido-enable-flex-matching t)
-  (setq ido-use-filename-at-point nil)
-  (setq ido-auto-merge-work-directories-length 0)
-  (setq ido-use-virtual-buffers t)
+;; Use C-f during file selection to switch to regular find-file
+(ido-mode t)
+(ido-everywhere t)
+(setq ido-enable-flex-matching t)
+(setq ido-use-filename-at-point nil)
+(setq ido-auto-merge-work-directories-length 0)
+(setq ido-use-virtual-buffers t)
 
-  ;; Use smex to handle M-x
-  (use-package smex
-    :ensure t
-    :init (progn
-            (global-set-key [remap execute-extended-command] 'smex)))
+;; Use smex to handle M-x
+(use-package smex
+  :ensure t
+  :config
+  (smex-initialize))
 
-  (use-package idomenu :ensure t
-    :init (progn
-  ;; Allow the same buffer to be open in different frames
-  (setq ido-default-buffer-method 'selected-window)))
+(use-package idomenu :ensure t
+  :init (progn
+;; Allow the same buffer to be open in different frames
+(setq ido-default-buffer-method 'selected-window)))
 #+END_SRC
 * find-file-in-project
 #+BEGIN_SRC emacs-lisp
@@ -469,129 +511,129 @@ scroll-step 1)
       ))
 #+END_SRC
 * evil
-#+BEGIN_SRC emacs-lisp
-(use-package evil
-  :ensure t
-  :init
-  (progn
-    (require 'evil)
-    (setq evil-want-fine-undo t)
-    (setq evil-emacs-state-cursor 'bar)
-    (setq evil-default-state 'emacs)
-    (evil-mode 1)
-    (setcdr evil-insert-state-map nil)
-    (define-key evil-insert-state-map [escape] 'evil-normal-state)
-    (define-key evil-insert-state-map
-      (read-kbd-macro evil-toggle-key) 'evil-emacs-state))
-
-(mapc (lambda (r) (evil-set-initial-state (car r) (cdr r)))
-        '((compilation-mode       . normal)
-          (help-mode              . normal)
-          (message-mode           . normal)
-          (debugger-mode          . normal)
-          (image-mode             . normal)
-          (doc-view-mode          . normal)
-          (eww-mode               . normal)
-          (tabulated-list-mode    . emacs)
-          (profile-report-mode    . emacs)
-          (Info-mode              . emacs)
-          (view-mode              . emacs)
-          (comint-mode            . emacs)
-          (cider-repl-mode        . emacs)
-          (term-mode              . emacs)
-          (calendar-mode          . emacs)
-          (Man-mode               . emacs)
-          (grep-mode              . emacs)))
-  ;;;; Support
-  (defmacro without-evil-mode (&rest do-this)
-    ;; Check if evil-mode is on, and disable it temporarily
-    `(let ((evil-mode-is-on (evil-mode?)))
-       (if evil-mode-is-on
-           (disable-evil-mode))
-       (ignore-errors
-         ,@do-this)
-       (if evil-mode-is-on
-           (enable-evil-mode))))
-
-  (defmacro evil-mode? ()
-    "Checks if evil-mode is active. Uses Evil's state to check."
-    `evil-state)
-
-  (defmacro disable-evil-mode ()
-    "Disable evil-mode with visual cues."
-    `(progn
-       (evil-mode 0)
-       (message "Evil mode disabled")))
-
-  (defmacro enable-evil-mode ()
-    "Enable evil-mode with visual cues."
-    `(progn
-       (evil-mode 1)
-       (message "Evil mode enabled")))
-
-;;;; Clipboard bypass
-
-  ;; delete: char
-  (evil-define-operator evil-destroy-char (beg end type register yank-handler)
-    :motion evil-forward-char
-    (evil-delete-char beg end type ?_))
-
-  ;; delete: char (backwards)
-  (evil-define-operator evil-destroy-backward-char (beg end type register yank-handler)
-    :motion evil-forward-char
-    (evil-delete-backward-char beg end type ?_))
-
-  ;; delete: text object
-  (evil-define-operator evil-destroy (beg end type register yank-handler)
-    "Vim's 's' without clipboard."
-    (evil-delete beg end type ?_ yank-handler))
-
-  ;; delete: to end of line
-  (evil-define-operator evil-destroy-line (beg end type register yank-handler)
-    :motion nil
-    :keep-visual t
-    (interactive "<R><x>")
-    (evil-delete-line beg end type ?_ yank-handler))
-
-  ;; delete: whole line
-  (evil-define-operator evil-destroy-whole-line (beg end type register yank-handler)
-    :motion evil-line
-    (interactive "<R><x>")
-    (evil-delete-whole-line beg end type ?_ yank-handler))
-
-  ;; change: text object
-  (evil-define-operator evil-destroy-change (beg end type register yank-handler delete-func)
-    (evil-change beg end type ?_ yank-handler delete-func))
-
-  ;; paste: before
-  (defun evil-destroy-paste-before ()
-    (interactive)
-    (without-evil-mode
-     (delete-region (point) (mark))
-     (evil-paste-before 1)))
-
-  ;; paste: after
-  (defun evil-destroy-paste-after ()
-    (interactive)
-    (without-evil-mode
-     (delete-region (point) (mark))
-     (evil-paste-after 1)))
-
-  ;; paste: text object
-  (evil-define-operator evil-destroy-replace (beg end type register yank-handler)
-    (evil-destroy beg end type register yank-handler)
-    (evil-paste-before 1 register))
-
-
-  ;; Clipboard bypass key rebindings
-  (define-key evil-normal-state-map "s" 'evil-destroy)
-  (define-key evil-normal-state-map "S" 'evil-destroy-line)
-  (define-key evil-normal-state-map "c" 'evil-destroy-change)
-  (define-key evil-normal-state-map "x" 'evil-destroy-char)
-  (define-key evil-normal-state-map "X" 'evil-destroy-whole-line)
-  (define-key evil-normal-state-map "Y" 'evil-copy-to-end-of-line)
-  (define-key evil-visual-state-map "P" 'evil-destroy-paste-before)
-  (define-key evil-visual-state-map "p" 'evil-destroy-paste-after))
+#+BEGIN_SRC emacs-lisp :tangle no
+;(use-package evil
+;  :ensure t
+;  :init
+;  (progn
+;    (require 'evil)
+;    (setq evil-want-fine-undo t)
+;    (setq evil-emacs-state-cursor 'bar)
+;    (setq evil-default-state 'emacs)
+;    (evil-mode 1)
+;    (setcdr evil-insert-state-map nil)
+;    (define-key evil-insert-state-map [escape] 'evil-normal-state)
+;    (define-key evil-insert-state-map
+;      (read-kbd-macro evil-toggle-key) 'evil-emacs-state))
+;
+;(mapc (lambda (r) (evil-set-initial-state (car r) (cdr r)))
+;        '((compilation-mode       . normal)
+;          (help-mode              . normal)
+;          (message-mode           . normal)
+;          (debugger-mode          . normal)
+;          (image-mode             . normal)
+;          (doc-view-mode          . normal)
+;          (eww-mode               . normal)
+;          (tabulated-list-mode    . emacs)
+;          (profile-report-mode    . emacs)
+;          (Info-mode              . emacs)
+;          (view-mode              . emacs)
+;          (comint-mode            . emacs)
+;          (cider-repl-mode        . emacs)
+;          (term-mode              . emacs)
+;          (calendar-mode          . emacs)
+;          (Man-mode               . emacs)
+;          (grep-mode              . emacs)))
+;  ;;;; Support
+;  (defmacro without-evil-mode (&rest do-this)
+;    ;; Check if evil-mode is on, and disable it temporarily
+;    `(let ((evil-mode-is-on (evil-mode?)))
+;       (if evil-mode-is-on
+;           (disable-evil-mode))
+;       (ignore-errors
+;         ,@do-this)
+;       (if evil-mode-is-on
+;           (enable-evil-mode))))
+;
+;  (defmacro evil-mode? ()
+;    "Checks if evil-mode is active. Uses Evil's state to check."
+;    `evil-state)
+;
+;  (defmacro disable-evil-mode ()
+;    "Disable evil-mode with visual cues."
+;    `(progn
+;       (evil-mode 0)
+;       (message "Evil mode disabled")))
+;
+;  (defmacro enable-evil-mode ()
+;    "Enable evil-mode with visual cues."
+;    `(progn
+;       (evil-mode 1)
+;       (message "Evil mode enabled")))
+;
+;;;;; Clipboard bypass
+;
+;  ;; delete: char
+;  (evil-define-operator evil-destroy-char (beg end type register yank-handler)
+;    :motion evil-forward-char
+;    (evil-delete-char beg end type ?_))
+;
+;  ;; delete: char (backwards)
+;  (evil-define-operator evil-destroy-backward-char (beg end type register yank-handler)
+;    :motion evil-forward-char
+;    (evil-delete-backward-char beg end type ?_))
+;
+;  ;; delete: text object
+;  (evil-define-operator evil-destroy (beg end type register yank-handler)
+;    "Vim's 's' without clipboard."
+;    (evil-delete beg end type ?_ yank-handler))
+;
+;  ;; delete: to end of line
+;  (evil-define-operator evil-destroy-line (beg end type register yank-handler)
+;    :motion nil
+;    :keep-visual t
+;    (interactive "<R><x>")
+;    (evil-delete-line beg end type ?_ yank-handler))
+;
+;  ;; delete: whole line
+;  (evil-define-operator evil-destroy-whole-line (beg end type register yank-handler)
+;    :motion evil-line
+;    (interactive "<R><x>")
+;    (evil-delete-whole-line beg end type ?_ yank-handler))
+;
+;  ;; change: text object
+;  (evil-define-operator evil-destroy-change (beg end type register yank-handler delete-func)
+;    (evil-change beg end type ?_ yank-handler delete-func))
+;
+;  ;; paste: before
+;  (defun evil-destroy-paste-before ()
+;    (interactive)
+;    (without-evil-mode
+;     (delete-region (point) (mark))
+;     (evil-paste-before 1)))
+;
+;  ;; paste: after
+;  (defun evil-destroy-paste-after ()
+;    (interactive)
+;    (without-evil-mode
+;     (delete-region (point) (mark))
+;     (evil-paste-after 1)))
+;
+;  ;; paste: text object
+;  (evil-define-operator evil-destroy-replace (beg end type register yank-handler)
+;    (evil-destroy beg end type register yank-handler)
+;    (evil-paste-before 1 register))
+;
+;
+;  ;; Clipboard bypass key rebindings
+;  (define-key evil-normal-state-map "s" 'evil-destroy)
+;  (define-key evil-normal-state-map "S" 'evil-destroy-line)
+;  (define-key evil-normal-state-map "c" 'evil-destroy-change)
+;  (define-key evil-normal-state-map "x" 'evil-destroy-char)
+;  (define-key evil-normal-state-map "X" 'evil-destroy-whole-line)
+;  (define-key evil-normal-state-map "Y" 'evil-copy-to-end-of-line)
+;  (define-key evil-visual-state-map "P" 'evil-destroy-paste-before)
+;  (define-key evil-visual-state-map "p" 'evil-destroy-paste-after))
 #+END_SRC
 * flycheck
 #+BEGIN_SRC emacs-lisp
@@ -674,7 +716,7 @@ scroll-step 1)
 
 #+END_SRC
 * multiple edit
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package evil-multiedit
   :ensure t
   :init 
@@ -689,7 +731,7 @@ scroll-step 1)
  ;     )
 #+END_SRC
 * Auto Sync
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (defcustom auto-sync-script-name ".sync"
     "customized scripts which to be executed after save-buffer done")
 
@@ -728,7 +770,7 @@ scroll-step 1)
 
 #+END_SRC
 * Org
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp 
 (org-babel-load-file (concat emacs-base-dir "org-mode.org"))
 (setq org-file-apps org-file-apps-defaults-macosx)
 (setq org-src-tab-acts-natively t)
@@ -756,7 +798,7 @@ scroll-step 1)
     ))
 #+END_SRC
 * evil-easymotion
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package evil-easymotion
     :ensure t
     :init (evilem-default-keybindings "SPC"))
@@ -999,7 +1041,7 @@ scroll-step 1)
                 (define-key dired-mode-map "\C-cO" 'ergoemacs-open-in-desktop)))
 #+END_SRC
 * all-the-icons
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package all-the-icons
   :ensure t
   :init 
@@ -1019,17 +1061,6 @@ scroll-step 1)
     (global-set-key (kbd "<C-f12>") 'neotree-toggle)
     ))
 #+END_SRC
-* evil-escape
-#+BEGIN_SRC emacs-lisp
-(use-package evil-escape
-  :ensure t
-  :init 
-  (progn
-    (evil-escape-mode)
-    (setq-default evil-escape-key-sequence "jk")
-    (setq-default evil-escape-delay 0.2)
-    ))
-#+END_SRC
 * org-download
 #+BEGIN_SRC emacs-lisp
 (use-package org-download
@@ -1041,7 +1072,7 @@ scroll-step 1)
     ))
 #+END_SRC
 * vueify-mmm-mode
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (require 'mmm-mode)
 (setq mmm-global-mode 'maybe)
 
@@ -1081,60 +1112,346 @@ scroll-step 1)
 ;    ))
 #+END_SRC
 
-* clean-mode-line
+* dashboard
 #+BEGIN_SRC emacs-lisp
-(defvar mode-line-cleaner-alist
-  `((company-mode . "")
-    (yas-minor-mode . " γ")
-    (paredit-mode . " Φ")
-    (org-mode . " ✍")
-    (help-mode . " ★")
-    (emmet-mode . "")
-    (tern-mode . "")
-    (js2-mode . " ➁")
-    (indent-guide-mode . "")
-    (smartparens-mode . "")
-    (which-key-mode . "")
-    (evil-escape-mode . "")
-    (abbrev-mode . "")
-    (org-indent-mode . "")
-    (undo-tree-mode . "")
-    ;(flycheck-mode . " ")
-    (lisp-interaction-mode . " ✺")
-    (mmm-mode . " ❖")
-    (web-mode . " ♣")
-    (volatile-highlights-mode . " υ")
-    ;(elisp-slime-nav-mode . " δ")
-    (nrepl-mode . " ηζ")
-    (nrepl-interaction-mode . " ηζ")
-    ;; Major modes
-    ;(clojure-mode . "λ")
-    (hi-lock-mode . "")
-    ;(python-mode . "Py")
-    (emacs-lisp-mode . "EL")
-    (markdown-mode . "md"))
-  "Alist for `clean-mode-line'.
-When you add a new element to the alist, keep in mind that you
-must pass the correct minor/major mode symbol and a string you
-want to use in the modeline *in lieu of* the original.")
-
-
-(defun clean-mode-line ()
-  (interactive)
-  (loop for cleaner in mode-line-cleaner-alist
-        do (let* ((mode (car cleaner))
-                 (mode-str (cdr cleaner))
-                 (old-mode-str (cdr (assq mode minor-mode-alist))))
-             (when old-mode-str
-                 (setcar old-mode-str mode-str))
-               ;; major mode
-             (when (eq mode major-mode)
-               (setq mode-name mode-str)))))
-
-
-;(add-hook 'after-change-major-mode-hook 'clean-mode-line)
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
 #+END_SRC
 
+* discover-my-major
+#+BEGIN_SRC emacs-lisp
+(use-package discover-my-major
+  :ensure t
+  :bind (("C-h C-m" . discover-my-major)
+         ("C-h M-m" . discover-my-mode)))
+#+END_SRC
+* beacon
+#+BEGIN_SRC emacs-lisp
+(use-package beacon
+  :ensure t
+  :demand t
+  :diminish beacon-mode
+  :bind* (("M-m g z" . beacon-blink))
+  :config
+  (beacon-mode 1))
+; Modal binding
+(modalka-define-kbd "g z" "M-m g z")
+; Which key modal explanation
+
+(which-key-add-key-based-replacements
+  "g z" "blink cursor")
+#+END_SRC
+* modalka
+#+begin_src emacs-lisp
+(use-package modalka
+  :ensure t
+  :demand t
+  :bind* (("C-z" . modalka-mode))
+  :diminish (modalka-mode . "μ")
+  :init
+  (setq modalka-cursor-type 'box)
+  :config
+  (global-set-key (kbd "<escape>") #'modalka-mode)
+  (modalka-global-mode 1)
+  (add-to-list 'modalka-excluded-modes 'magit-status-mode)
+  (add-to-list 'modalka-excluded-modes 'magit-popup-mode)
+  (add-to-list 'modalka-excluded-modes 'eshell-mode)
+  (add-to-list 'modalka-excluded-modes 'deft-mode)
+  (add-to-list 'modalka-excluded-modes 'term-mode)
+  (which-key-add-key-based-replacements
+    "M-m"     "Modalka prefix"
+    "M-m :"   "extended prefix"
+    "M-m m"   "move prefix"
+    "M-m s"   "send code prefix"
+    "M-m SPC" "user prefix"
+    "M-m g"   "global prefix"
+    "M-m o"   "org prefix"
+    "M-m a"   "expand around prefix"
+    "M-m i"   "expand inside prefix"
+    "M-m ["   "prev nav prefix"
+    "M-m ]"   "next nav prefix"))
+#+end_src
+** Default modal keybindings
+*** Numbers
+#+begin_src emacs-lisp
+(modalka-define-kbd "0" "C-0")
+(modalka-define-kbd "1" "C-1")
+(modalka-define-kbd "2" "C-2")
+(modalka-define-kbd "3" "C-3")
+(modalka-define-kbd "4" "C-4")
+(modalka-define-kbd "5" "C-5")
+(modalka-define-kbd "6" "C-6")
+(modalka-define-kbd "7" "C-7")
+(modalka-define-kbd "8" "C-8")
+(modalka-define-kbd "9" "C-9")
+#+end_src
+*** Movement and one key presses
+#+begin_src emacs-lisp
+(modalka-define-kbd "h" "C-b")
+(modalka-define-kbd "j" "C-n")
+(modalka-define-kbd "k" "C-p")
+(modalka-define-kbd "l" "C-f")
+(modalka-define-kbd "e" "M-f")
+(modalka-define-kbd "b" "M-b")
+(modalka-define-kbd "n" "M-n")
+(modalka-define-kbd "N" "M-p")
+(modalka-define-kbd "{" "M-{")
+(modalka-define-kbd "}" "M-}")
+(modalka-define-kbd "0" "C-a")
+(modalka-define-kbd "$" "C-e")
+(modalka-define-kbd "G" "M->")
+(modalka-define-kbd "y" "M-w")
+(modalka-define-kbd "p" "C-y")
+(modalka-define-kbd "P" "M-y")
+(modalka-define-kbd "x" "C-d")
+(modalka-define-kbd "D" "C-k")
+(modalka-define-kbd "z" "C-l")
+(modalka-define-kbd "!" "M-&")
+(modalka-define-kbd "J" "C-v")
+(modalka-define-kbd "K" "M-v")
+(modalka-define-kbd "M" "C-u")
+(modalka-define-kbd "(" "M-a")
+(modalka-define-kbd ")" "M-e")
+(modalka-define-kbd "/" "C-s")
+(modalka-define-kbd "E" "C-g")
+(modalka-define-kbd "d" "C-w")
+(modalka-define-kbd "w" "C-x o")
+(modalka-define-kbd "W" "M-m W")
+(modalka-define-kbd "B" "M-m B")
+(modalka-define-kbd "H" "C-x >")
+(modalka-define-kbd "L" "C-x <")
+(modalka-define-kbd "Z" "C-x 1")
+(modalka-define-kbd "q" "C-x (")
+(modalka-define-kbd "Q" "C-x )")
+(modalka-define-kbd "." "M-m .")
+(modalka-define-kbd "?" "M-m ?")
+(modalka-define-kbd "v" "C-SPC")
+(modalka-define-kbd "V" "M-m V")
+(modalka-define-kbd "=" "M-m =")
+(modalka-define-kbd "R" "M-m R")
+(modalka-define-kbd "X" "C-x C-x")
+(modalka-define-kbd "+" "C-x r m")
+(modalka-define-kbd "'" "C-x r b")
+(modalka-define-kbd "\\" "C-c C-c")
+#+end_src
+*** Global prefixed keys
+#+begin_src emacs-lisp
+(modalka-define-kbd "g g" "M-<")
+(modalka-define-kbd "g o" "C-x C-e")
+(modalka-define-kbd "g O" "C-M-x")
+(modalka-define-kbd "g m" "M-m g m")
+(modalka-define-kbd "g M" "M-m g M")
+(modalka-define-kbd "g n" "M-m g n")
+(modalka-define-kbd "g N" "M-m g N")
+(modalka-define-kbd "g f" "M-m g f")
+(modalka-define-kbd "g F" "M-m g F")
+(modalka-define-kbd "g j" "M-m g j")
+(modalka-define-kbd "g k" "M-m g k")
+(modalka-define-kbd "g q" "M-m g q")
+(modalka-define-kbd "g w" "C-x 3")
+(modalka-define-kbd "g W" "C-x 2")
+(modalka-define-kbd "g @" "M-m g @")
+(modalka-define-kbd "g ;" "M-m g ;")
+(modalka-define-kbd "g :" "M-m g :")
+(modalka-define-kbd "g #" "M-m g #")
+(modalka-define-kbd "g {" "M-m g {")
+(modalka-define-kbd "g }" "M-m g }")
+(modalka-define-kbd "g (" "M-m g (")
+(modalka-define-kbd "g )" "M-m g )")
+(modalka-define-kbd "^" "M-m ^")
+(modalka-define-kbd "&" "M-m &")
+(modalka-define-kbd "g S" "C-j")
+(modalka-define-kbd "g ?" "C-h k")
+#+end_src
+*** Select region prefixed keys
+#+begin_src emacs-lisp
+(modalka-define-kbd "i a" "C-x h")
+#+end_src
+*** Forward navigation prefixed keys
+#+begin_src emacs-lisp
+(modalka-define-kbd "] ]" "C-x n n")
+(modalka-define-kbd "] s" "M-m ] s")
+#+end_src
+*** Backward navigation prefixed keys
+#+begin_src emacs-lisp
+(modalka-define-kbd "[ [" "C-x n w")
+#+end_src
+*** Extended prefix to quit/restart and time
+#+begin_src emacs-lisp
+(modalka-define-kbd ": q" "C-x C-c")
+(modalka-define-kbd ": r" "C-x M-c")
+(modalka-define-kbd ": t" "M-m : t")
+#+end_src
+*** User prefix for common functions
+#+begin_src emacs-lisp
+(modalka-define-kbd "g U" "C-c C-k")
+(modalka-define-kbd "SPC j" "M-x")
+(modalka-define-kbd "SPC a" "C-x b")
+(modalka-define-kbd "SPC k" "C-x k")
+(modalka-define-kbd "SPC g" "M-g g")
+(modalka-define-kbd "SPC d" "C-x d")
+(modalka-define-kbd "SPC q" "C-x 0")
+(modalka-define-kbd "SPC f" "C-x C-f")
+(modalka-define-kbd "SPC w" "C-x C-s")
+(modalka-define-kbd "SPC c" "M-m SPC c")
+(modalka-define-kbd "SPC R" "M-m SPC R")
+(modalka-define-kbd "SPC ?" "M-m SPC ?")
+#+end_src
+** Which key explanations for everything
+#+begin_src emacs-lisp
+;; Numbers
+(which-key-add-key-based-replacements
+  "0" "0"
+  "1" "1"
+  "2" "2"
+  "3" "3"
+  "4" "4"
+  "5" "5"
+  "6" "6"
+  "7" "7"
+  "8" "8"
+  "9" "9")
+;; Movement and one key presses
+(which-key-add-key-based-replacements
+  "ESC" "toggle mode"
+  "DEL" "smart del"
+  "TAB" "smart tab"
+  "RET" "smart enter"
+  "h"   "prev char"
+  "j"   "next line"
+  "k"   "prev line"
+  "l"   "next char"
+  "e"   "next word"
+  "b"   "prev word"
+  "n"   "next history item"
+  "N"   "prev history item"
+  "{"   "next para"
+  "}"   "prev para"
+  "0"   "start of line"
+  "$"   "end of line"
+  "("   "start of sentence"
+  ")"   "end of sentence"
+  "/" "search"
+  "E"   "exit anything"
+  "B"   "previous buffer"
+  "W"   "winner undo"
+  "w"   "other window"
+  "G"   "end of file"
+  "d"   "delete selection"
+  "y"   "copy selection"
+  "p"   "paste"
+  "P"   "paste history"
+  "x"   "delete char"
+  "D"   "delete rest of line"
+  "M"   "modify argument"
+  "z"   "scroll center/top/bot"
+  "Z"   "zoom into window"
+  "H"   "scroll left"
+  "J"   "scroll down"
+  "K"   "scroll up"
+  "L"   "scroll right"
+  "'"   "org edit separately"
+  "q"   "start macro"
+  "Q"   "end macro"
+  "?"   "top level bindings"
+  "v"   "start selection"
+  "R"   "overwrite mode"
+  "X"   "exchange point and mark"
+  "+"   "set bookmark"
+  "'"   "jump to bookmark"
+  "="   "indent region"
+  "\\"  "C-c C-c"
+  "!"   "async shell command"
+  "&"   "shell command")
+;; Global prefixed keys
+(which-key-add-key-based-replacements
+  "g"   "global prefix"
+  "g g" "start of file"
+  "g m" "make frame"
+  "g M" "delete frame"
+  "g n" "select frame by name"
+  "g N" "name frame"
+  "g j" "next pdf page"
+  "g k" "previous pdf page"
+  "g f" "file/url at cursor"
+  "g F" "enable follow mode"
+  "g o" "eval elisp"
+  "g O" "eval defun"
+  "g w" "vertical split win"
+  "g W" "horizontal split win"
+  "g S" "split line"
+  "g @" "compose mail"
+  "g #" "list eww histories"
+  "g x" "browse with eww"
+  "g :" "browse with external browser"
+  "g {" "eww back"
+  "g }" "eww forward"
+  "g (" "info previous"
+  "g )" "info next"
+  "^"   "info up"
+  "&"   "info goto"
+  "g q" "format para"
+  "g ?" "find command bound to key")
+;; Select region prefixed keys
+(which-key-add-key-based-replacements
+  "i"   "expand prefix"
+  "i a" "expand entire buffer")
+;; Forward navigation prefixed keys
+(which-key-add-key-based-replacements
+  "]"   "forward nav/edit"
+  "] ]" "narrow region"
+  "] s" "next spell error")
+;; Backward navigation prefixed keys
+(which-key-add-key-based-replacements
+  "["   "backward nav/edit"
+  "[ [" "widen region")
+;; Extended prefix to quit/restart and time
+(which-key-add-key-based-replacements
+  ":"   "extended prefix"
+  ": q" "quit emacs"
+  ": r" "restart emacs"
+  ": t" "initiliazation time")
+;; User prefix for common functions
+(which-key-add-key-based-replacements
+  "SPC"   "custom prefix"
+  "SPC ?" "describe bindings"
+  "SPC j" "jump to cmd"
+  "SPC f" "find file"
+  "SPC a" "switch buffers"
+  "SPC g" "goto line"
+  "SPC d" "dired"
+  "SPC k" "close buffer"
+  "SPC w" "save buffer"
+  "SPC c" "load theme"
+  "SPC R" "locate"
+  "SPC q" "quit window"
+  "g U"   "simulate C-c C-k")
+
+#+end_src
+* Undo tree
+#+begin_src emacs-lisp
+(use-package undo-tree
+  :ensure t
+  :diminish undo-tree-mode
+  :bind* (("M-m u" . undo-tree-undo)
+          ("M-m r" . undo-tree-redo)
+          ("M-m U" . undo-tree-visualize))
+  :config
+  (global-undo-tree-mode 1))
+
+;; Modal binding
+(modalka-define-kbd "u" "M-m u")
+(modalka-define-kbd "U" "M-m U")
+(modalka-define-kbd "r" "M-m r")
+
+;; Which key modal explanation
+(which-key-add-key-based-replacements
+  "u" "undo"
+  "r" "redo"
+  "U" "undo tree")
+#+end_src
 * Load Customize
 #+BEGIN_SRC emacs-lisp
 (load custom-file 'noerror)
