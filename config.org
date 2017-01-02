@@ -3817,7 +3817,7 @@ Emacs has a built-in =hide-show= mode but it isn't great. [[https://github.com/g
 (use-package origami
   :ensure t
   :commands (origami-toggle-node)
-  :bind* (("M-m -" . orgiami-toggle-node)))
+  :bind* (("M-m -" . origami-toggle-node)))
 #+END_SRC
 
 **** Modal binding
@@ -3850,7 +3850,6 @@ Syntax based folding is great and all but sometimes I need to fold some random p
   :config
   (dashboard-setup-startup-hook))
 #+END_SRC
-
 ** Hydras
 
 *** Activate minor modes
