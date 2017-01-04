@@ -46,6 +46,7 @@ Emacs has a built-in [[https://www.gnu.org/software/emacs/manual/html_node/emacs
   (when window-system
     (tool-bar-mode 0)
     (scroll-bar-mode 0)
+    (menu-bar-mode 0)
     (tooltip-mode 0))
 #+END_SRC
 
