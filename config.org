@@ -7730,6 +7730,19 @@ Which key modal explanation
   "SPC M" "make in current dir")
 #+END_SRC
 
+* Integration
+** Search
+*** wgrep
+
+Writable grep/ack/ag/pt buffer and apply the changes to files.
+
+#+BEGIN_SRC emacs-lisp
+(use-package wgrep
+  :ensure t
+  :config
+  (setq wgrep-enable-key "r"))
+
+#+END_SRC
 * Fun
 
 Emacs is fun!
