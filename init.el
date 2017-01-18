@@ -28,3 +28,5 @@
     (setq emacs-base-dir (file-name-directory (or load-file-name (buffer-file-name))))
     (org-babel-load-file (concat emacs-base-dir "config.org"))))
 (put 'dired-find-alternate-file 'disabled nil)
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
