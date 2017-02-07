@@ -1228,7 +1228,7 @@ Syntax highlighting for =json= files.
   :config
   (progn
     (setq tern-command (append tern-command '("--no-port-file")))
-    (add-hook 'js-mode-hook '(lambda () (tern-mode t)))))
+    (add-hook 'js2-mode-hook '(lambda () (tern-mode t)))))
 #+END_SRC
 *** Beautify
 
@@ -1268,8 +1268,8 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
               :submode ,submode
               :front ,front
               :back ,back)))
-          (mmm-add-mode-ext-class nil "\\.vue?\\'" class-name)
-(mmm-add-mode-ext-class nil "\\.vue?\\'" class-name)))))
+         ;(mmm-add-mode-ext-class nil "\\.vue?\\'" class-name)
+          (mmm-add-mode-ext-class nil "\\.vue?\\'" class-name)))))
 
   (add-to-list 'auto-mode-alist '("\\.vue?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.we?\\'" . web-mode)))
@@ -1370,7 +1370,7 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
      "tw" '(company-web-html))
     :config
     (add-to-list 'company-backends 'company-web-html))
- )
+  )
 #+END_SRC
 ** smartparens
 #+BEGIN_SRC emacs-lisp
@@ -2118,7 +2118,7 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
    "w-" '(sk/split-below-and-move)
-   "w/" '(sk/split-right-and-move)
+   "w|" '(sk/split-right-and-move)
    "w=" '(balance-windows)
    "wF" '(make-frame)
    "wf" '(follow-mode)
