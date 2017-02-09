@@ -461,6 +461,11 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
 (use-package dired
   :bind (:map dired-mode-map
               ("C-c C-e" . wdired-change-to-wdired-mode))
+  :general 
+    (general-leader-key
+            :keymaps 'dired-mode-map
+            "fo" '(ergoemacs-open-in-external-app)
+            "fO" '(ergoemacs-open-in-desktop))
   :init
   (setq dired-dwim-target t
         dired-recursive-copies 'always
@@ -509,6 +514,23 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
                 (define-key dired-mode-map "\C-co" 'ergoemacs-open-in-external-app)
                 (define-key dired-mode-map "\C-cO" 'ergoemacs-open-in-desktop)))
   (add-hook 'dired-mode-hook 'dired-hide-details-mode))
+#+END_SRC
+** quick preview
+[[https://github.com/myuhe/quick-preview.el][Quick-preview]] is an application for previewing file using external tool.
+
+ You can choose external tool below, 
+
+ - [[https://en.wikipedia.org/wiki/Sushi_(software)][GNOME Sushi]]
+ - [[http://gloobus.net/gloobus-preview/][Gloobus preview]]
+ - [[https://en.wikipedia.org/wiki/Quick_Look][Quick Look]]
+
+ For Mac user, The default value is set to  =Quick Look=, For Linux user, set to =GNOME Sushi=.
+
+#+BEGIN_SRC emacs-lisp
+(use-package quick-preview
+  :ensure t
+  :bind (:map dired-mode-map
+              ("SPC" . quick-preview-at-point)))
 #+END_SRC
 * Navigation
 ** Flx
