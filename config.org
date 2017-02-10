@@ -529,8 +529,10 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
 #+BEGIN_SRC emacs-lisp
 (use-package quick-preview
   :ensure t
-  :bind (:map dired-mode-map
-              ("SPC" . quick-preview-at-point)))
+  :general
+  (general-define-key :keymaps 'dired-mode-map
+                      :states '(insert emacs)
+                      "SPC" 'quick-preview-at-point))
 #+END_SRC
 * Navigation
 ** Flx
@@ -1598,6 +1600,18 @@ Writable grep/ack/ag/pt buffer and apply the changes to files.
           "xys" '(youdao-dictionary-search-at-point+ :which-key "youdao dictionary popup")))
 #+END_SRC
 
+** calendar
+[[https://github.com/kiwanami/emacs-calfw][calfw]] - A calendar framework for Emacs
+#+BEGIN_SRC emacs-lisp
+(use-package calfw
+  :ensure t
+  :general 
+  (general-leader-key
+          "acb" '(cfw:open-calendar-buffer :which-key "open calendar buffer")
+          "aco" '(cfw:open-org-calendar :which-key "open org calendar"))
+  :config
+  (require 'calfw-org))
+#+END_SRC
 * Internet
 ** Browser
 ** Mail
