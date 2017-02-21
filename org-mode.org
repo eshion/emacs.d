@@ -5735,9 +5735,9 @@ Here's the smex setup I use
 ;(require 'smex)
 ;(smex-initialize)
 
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "C-x x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
+;(global-set-key (kbd "M-x") 'smex)
+;(global-set-key (kbd "C-x x") 'smex)
+;(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 #+end_src
 ** Use Emacs bookmarks for fast navigation
 :PROPERTIES:

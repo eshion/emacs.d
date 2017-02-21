@@ -365,6 +365,35 @@ scroll-step 1)
   (interactive "p")
   (enlarge-window arg t))
 
+(defun rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (if (get-buffer new-name)
+            (error "A buffer named '%s' already exists!" new-name)
+          (rename-file filename new-name 1)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)
+          (message "File '%s' successfully renamed to '%s'"
+                   name (file-name-nondirectory new-name)))))))
+(defun delete-current-buffer-file ()
+  "Removes file connected to current buffer and kills buffer."
+  (interactive)
+  (let ((filename (buffer-file-name))
+        (buffer (current-buffer))
+        (name (buffer-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (ido-kill-buffer)
+      (when (yes-or-no-p "Are you sure you want to remove this file? ")
+        (delete-file filename)
+        (kill-buffer buffer)
+        (message "File '%s' successfully removed" filename)))))
+
 ;; Create a new instance of emacs
 (when window-system
   (defun new-emacs-instance ()
@@ -515,6 +544,28 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
                 (define-key dired-mode-map "\C-cO" 'ergoemacs-open-in-desktop)))
   (add-hook 'dired-mode-hook 'dired-hide-details-mode))
 #+END_SRC
+
+In dired, M-> and M- never take me where I want to go.
+
+Instead of taking me to the very beginning or very end, they now take me to the first or last file.
+
+#+BEGIN_SRC emacs-lisp
+(defun dired-back-to-top ()
+  (interactive)
+  (beginning-of-buffer)
+  (dired-next-line 4))
+
+;(define-key dired-mode-map
+;  (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
+
+(defun dired-jump-to-bottom ()
+  (interactive)
+  (end-of-buffer)
+  (dired-next-line -1))
+
+;(define-key dired-mode-map
+;  (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
+#+END_SRC
 ** quick preview
 [[https://github.com/myuhe/quick-preview.el][Quick-preview]] is an application for previewing file using external tool.
 
@@ -544,6 +595,21 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
   :ensure t
   :defer t)
 #+END_SRC
+** ido
+#+BEGIN_SRC emacs-lisp
+(use-package ido
+  :ensure t
+  :config
+  (ido-mode 1)
+  (ido-everywhere 1))
+#+END_SRC
+** ido-grid-mode
+#+BEGIN_SRC emacs-lisp
+(use-package ido-grid-mode
+  :ensure t
+  :config
+  (ido-grid-mode 1))
+#+END_SRC
 ** Smex
 
 [[https://github.com/nonsequitur/smex][smex]] is an amazing program that helps order the =M-x= commands based on usage and recent items. Let's install it.
@@ -552,7 +618,11 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
 (use-package smex
   :ensure t
   :config
-  (smex-initialize))
+  (smex-initialize)
+  (global-set-key (kbd "M-x") 'smex)
+  (global-set-key (kbd "C-x x") 'smex)
+  (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+  )
 #+END_SRC
 ** Beacon mode
 
@@ -1037,7 +1107,7 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
 [[https://github.com/magnars/.emacs.d/blob/master/defuns/file-defuns.el][Stolen]] from Magnar Sveen's config.
 
 #+BEGIN_SRC emacs-lisp
-(defun sk/rename-current-buffer-file ()
+(defun my/rename-current-buffer-file ()
   "Renames current buffer and file it is visiting."
   (interactive)
   (let ((name (buffer-name))
@@ -1067,7 +1137,7 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
 [[https://github.com/magnars/.emacs.d/blob/master/defuns/file-defuns.el][Stolen]] from Magnar Sveen's config.
 
 #+BEGIN_SRC emacs-lisp
-(defun sk/delete-current-buffer-file ()
+(defun my/delete-current-buffer-file ()
   "Removes file connected to current buffer and kills buffer."
   (interactive)
   (let ((filename (buffer-file-name))
@@ -1085,7 +1155,7 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
 
 #+BEGIN_SRC emacs-lisp
 (general-leader-key
-            "fD" '(sk/delete-current-buffer-file :which-key "delete buffer and file"))
+            "fD" '(my/delete-current-buffer-file :which-key "delete buffer and file"))
 #+END_SRC
 * Project management
 ** Projectile
@@ -1440,16 +1510,6 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
     (setq org-src-tab-acts-natively t)
     (use-package htmlize :ensure t)
   #+END_SRC
-** cal-china-x
-#+BEGIN_SRC emacs-lisp
-(use-package cal-china-x
-  :ensure t
-  :init
-    (setq mark-holidays-in-calendar t)
-  :config
-    (setq cal-china-x-important-holidays cal-china-x-chinese-holidays)
-    (setq calendar-holidays cal-china-x-important-holidays))
-#+END_SRC
 ** org-download
 #+BEGIN_SRC emacs-lisp
 (use-package org-download
@@ -1600,17 +1660,72 @@ Writable grep/ack/ag/pt buffer and apply the changes to files.
           "xys" '(youdao-dictionary-search-at-point+ :which-key "youdao dictionary popup")))
 #+END_SRC
 
-** calendar
+** Calendar
 [[https://github.com/kiwanami/emacs-calfw][calfw]] - A calendar framework for Emacs
 #+BEGIN_SRC emacs-lisp
 (use-package calfw
   :ensure t
   :general 
   (general-leader-key
+          "acc" '(my/open-calendar :which-key "open calendar")
           "acb" '(cfw:open-calendar-buffer :which-key "open calendar buffer")
-          "aco" '(cfw:open-org-calendar :which-key "open org calendar"))
+          "aco" '(cfw:open-org-calendar :which-key "open org calendar")
+          "aci" '(lambda () (interactive) (cfw:open-ical-calendar "https://calendar.google.com/calendar/ical/en.china%23holiday%40group.v.calendar.google.com/public/basic.ics") :which-key "open google calendar"))
+  :init
+  (setq cfw:org-overwrite-default-keybinding t)
   :config
-  (require 'calfw-org))
+  (require 'calfw-cal)
+  (require 'calfw-org)
+  (require 'calfw-ical)
+  (defun my/open-calendar ()
+    (interactive)
+    (cfw:open-calendar-buffer
+     :contents-sources
+     (list
+      ;(cfw:howm-create-source "Blue")  ; howm source
+      ;(cfw:cal-create-source  "Orange") ; diary source
+      (cfw:ical-create-source "lunar" "https://raw.githubusercontent.com/infinet/lunar-calendar/master/chinese_lunar_prev_year_next_year.ics" "IndianRed") ; google calendar ICS
+      (cfw:ical-create-source "gcal" "https://calendar.google.com/calendar/ical/zh-cn.china%23holiday%40group.v.calendar.google.com/public/basic.ics" "Orange") ; diary source
+      (cfw:ical-create-source "Holidays in Armenia" "https://calendar.google.com/calendar/ical/zh-cn.usa%23holiday%40group.v.calendar.google.com/public/basic.ics" "Blue") ; diary source
+      (cfw:org-create-source "Green")  ; orgmode source
+      ;(cfw:ical-create-source "Moon" "~/moon.ics" "Gray")  ; ICS source1
+      )))
+)
+#+END_SRC
+
+Chinese calendar
+
+农历年份以 60 年为一个周期，按公元前 2637 年算起的话，则 1993 年处于第 78 个周期中的第 10 年。
+
+http://www.crystalinks.com/calendarchina.html
+https://en.wikipedia.org/wiki/Chinese_calendar
+
+
+you can use something like:
+
+%%(my/diary-chinese-anniversary 10 11 1983) Someone's %d%s Birthday
+
+#+BEGIN_SRC emacs-lisp
+(defun my/diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
+  (if year
+      (let* ((d-date (diary-make-date lunar-month lunar-day year))
+             (a-date (calendar-absolute-from-gregorian d-date))
+             (c-date (calendar-chinese-from-absolute a-date))
+             (cycle (car c-date))
+             (yy (cadr c-date))
+             (y (+ (* 100 cycle) yy)))
+        (diary-chinese-anniversary lunar-month lunar-day y mark))
+    (diary-chinese-anniversary lunar-month lunar-day year mark)))
+#+END_SRC
+** cal-china-x
+#+BEGIN_SRC emacs-lisp
+(use-package cal-china-x
+  :ensure t
+  :init
+    (setq mark-holidays-in-calendar t)
+  :config
+    (setq cal-china-x-important-holidays cal-china-x-chinese-holidays)
+    (setq calendar-holidays cal-china-x-important-holidays))
 #+END_SRC
 * Internet
 ** Browser
@@ -1704,6 +1819,72 @@ Writable grep/ack/ag/pt buffer and apply the changes to files.
     ))
 
 #+END_SRC
+
+Use Hydra to avoid remembering key bindings
+
+#+begin_src emacs-lisp
+(eval-after-load 'gnus-group
+  '(progn
+     (defhydra hydra-gnus-group (:color blue)
+       "Do?"
+       ("a" gnus-group-list-active "REMOTE groups A A")
+       ("l" gnus-group-list-all-groups "LOCAL groups L")
+       ("c" gnus-topic-catchup-articles "Read all c")
+       ("G" gnus-group-make-nnir-group "Search server G G")
+       ("g" gnus-group-get-new-news "Refresh g")
+       ("s" gnus-group-enter-server-mode "Servers")
+       ("m" gnus-group-new-mail "Compose m OR C-x m")
+       ("#" gnus-topic-mark-topic "mark #")
+       ("q" nil "cancel"))
+     ;; y is not used by default
+     (define-key gnus-group-mode-map "y" 'hydra-gnus-group/body)))
+
+;; gnus-summary-mode
+(eval-after-load 'gnus-sum
+  '(progn
+     (defhydra hydra-gnus-summary (:color blue)
+       "Do?"
+       ("s" gnus-summary-show-thread "Show thread")
+       ("h" gnus-summary-hide-thread "Hide thread")
+       ("n" gnus-summary-insert-new-articles "Refresh / N")
+       ("f" gnus-summary-mail-forward "Forward C-c C-f")
+       ("!" gnus-summary-tick-article-forward "Mail -> disk !")
+       ("p" gnus-summary-put-mark-as-read "Mail <- disk")
+       ("c" gnus-summary-catchup-and-exit "Read all c")
+       ("e" gnus-summary-resend-message-edit "Resend S D e")
+       ("R" gnus-summary-reply-with-original "Reply with original R")
+       ("r" gnus-summary-reply "Reply r")
+       ("W" gnus-summary-wide-reply-with-original "Reply all with original S W")
+       ("w" gnus-summary-wide-reply "Reply all S w")
+       ("#" gnus-topic-mark-topic "mark #")
+       ("q" nil "cancel"))
+     ;; y is not used by default
+     (define-key gnus-summary-mode-map "y" 'hydra-gnus-summary/body)))
+
+;; gnus-article-mode
+(eval-after-load 'gnus-art
+  '(progn
+     (defhydra hydra-gnus-article (:color blue)
+       "Do?"
+       ("f" gnus-summary-mail-forward "Forward")
+       ("R" gnus-article-reply-with-original "Reply with original R")
+       ("r" gnus-article-reply "Reply r")
+       ("W" gnus-article-wide-reply-with-original "Reply all with original S W")
+       ("o" gnus-mime-save-part "Save attachment at point o")
+       ("w" gnus-article-wide-reply "Reply all S w")
+       ("q" nil "cancel"))
+     ;; y is not used by default
+     (define-key gnus-article-mode-map "y" 'hydra-gnus-article/body)))
+
+(eval-after-load 'message
+  '(progn
+     (defhydra hydra-message (:color blue)
+       "Do?"
+       ("ca" mml-attach-file "Attach C-c C-a")
+       ("cc" message-send-and-exit "Send C-c C-c")
+       ("q" nil "cancel"))
+     (global-set-key (kbd "C-c C-y") 'hydra-message/body)))
+#+end_src
 ** bbdb
 #+BEGIN_SRC emacs-lisp
 (use-package bbdb
@@ -1854,37 +2035,24 @@ Eldoc mode is a mode to display documentation for languages in Emacs
 #+END_SRC
 ** adjust-opacity
 #+BEGIN_SRC emacs-lisp
-(defun adjust-opacity (frame incr)
-  (let* ((oldalpha (or (frame-parameter frame 'alpha) 100))
-         (newalpha (+ incr oldalpha)))
-    (when (and (<= frame-alpha-lower-limit newalpha) (>= 100 newalpha))
-      (modify-frame-parameters frame (list (cons 'alpha newalpha))))))
-(global-set-key (kbd "M-C-8") '(lambda () (interactive) (adjust-opacity nil -5)))
-(global-set-key (kbd "M-C-9") '(lambda () (interactive) (adjust-opacity nil 5)))
-(global-set-key (kbd "M-C-0") '(lambda () (interactive) (modify-frame-parameters nil `((alpha . 100)))))
-#+END_SRC
-*** Hydra
+(defun my--set-transparency (inc)
+  "Increase or decrease the selected frame transparency"
+  (let* ((alpha (frame-parameter (selected-frame) 'alpha))
+         (next-alpha (cond ((not alpha) 100)
+                           ((> (- alpha inc) 100) 100)
+                           ((< (- alpha inc) 0) 0)
+                           (t (- alpha inc)))))
+    (set-frame-parameter (selected-frame) 'alpha next-alpha)))
 
-A hydra for adjust opacity!
-
-#+BEGIN_SRC emacs-lisp
-(defhydra es/hydra-adjust-opacity (:color blue
-                           :hint nil)
+(defhydra hydra-transparency (:columns 3)
   "
- _+_: increase opacity    _-_: decrease opacity    _=_: restore opacity   _q_: quit
- "
-  ("+" (lambda () (interactive) (adjust-opacity nil 5)))
-  ("-" (lambda () (interactive) (adjust-opacity nil -5)))
-  ("=" (lambda () (interactive) (modify-frame-parameters nil `((alpha . 100)))))
-  ("q" nil :color blue))
-#+END_SRC
+ALPHA : [ %(frame-parameter nil 'alpha) ]
+"
+  ("j" (lambda () (interactive) (my--set-transparency +1)) "+ opacity")
+  ("k" (lambda () (interactive) (my--set-transparency -1)) "- opacity")
+  ("=" (lambda () (interactive) (modify-frame-parameters nil `((alpha . 100)))) "reset"))
 
-*** Key binding
-
-#+BEGIN_SRC emacs-lisp
-  (general-leader-key 
-  "zo" '(es/hydra-adjust-opacity/body :which-key "adjust opacity")
-   )
+(general-leader-key "zo" '(hydra-transparency/body :which-key "adjust opacity"))
 #+END_SRC
 
 ** indent-guide
@@ -1988,6 +2156,9 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
    ;"bn" '(next-buffer)
    ;"bp" '(previous-buffer)
    "bw" '(read-only-mode)
+   "bc" '(create-new-buffer)
+   "bk" '(kill-default-buffer)
+   "bK" '(kill-all-buffers)
    )
 #+END_SRC
 ** compile/comments
@@ -2008,9 +2179,10 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
    "fg" '(rgrep)
    "fj" '(dired-jump)
    "fl" '(find-file-literally)
-   "fr" '(find-file-literally)
    "fS" '(evil-write-all)
    "fs" '(save-buffer)
+   "fr" '(rename-current-buffer-file)
+   "fD" '(delete-current-buffer-file)
    )
 #+END_SRC
 *** files/convert
