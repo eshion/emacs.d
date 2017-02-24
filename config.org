@@ -499,7 +499,7 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
   (setq dired-dwim-target t
         dired-recursive-copies 'always
         dired-recursive-deletes 'always
-        dired-listing-switches "-alh")
+        dired-listing-switches "-alht")
   :config
   (defun ergoemacs-open-in-external-app ()
     "Open the current file or dired marked files in external app."
