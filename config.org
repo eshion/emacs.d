@@ -688,6 +688,20 @@ The default Emacs [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Un
             "jj" '(avy-goto-char-timer)
             "jl" '(avy-goto-line)))
 #+END_SRC
+** point-undo
+[[https://github.com/emacsmirror/point-undo/][point-undo]] allows you to undo/redo point and window-start.
+
+It is like w3m's UNDO/REDO commands.
+
+#+BEGIN_SRC emacs-lisp
+(use-package point-undo
+  :ensure t
+  :init
+  :general 
+    (general-leader-key
+            "<left>" '(point-undo)
+            "<right>" '(point-redo)))
+#+END_SRC
 ** Highlight symbol
 
 [[https://github.com/nschum/highlight-symbol.el][This package]] is pretty simple. It adds functionality to highlight the current word or symbol and navigate to other instances.
