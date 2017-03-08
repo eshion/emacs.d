@@ -1332,7 +1332,7 @@ Syntax highlighting for =json= files.
 (use-package tern
   :ensure t
   :diminish tern-mode
-  :defer 2
+  :defer t
   :config
   (progn
     (setq tern-command (append tern-command '("--no-port-file")))
@@ -1421,6 +1421,7 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 #+BEGIN_SRC emacs-lisp
 (use-package company
   :ensure t
+  :defer t
   :commands (company-mode
              company-complete
              company-complete-common
@@ -1434,6 +1435,7 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
              company-web-html
              company-auctex)
   :init
+  (global-company-mode)
   (setq company-minimum-prefix-length 2
         company-require-match 0
         company-selection-wrap-around t
@@ -1446,39 +1448,57 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
     '(add-to-list 'company-backends '(company-files
                                       company-capf)))
   :bind (("M-t"   . company-complete)
-         ;("C-c f" . company-files)
-         ;("C-c a" . company-dabbrev)
-         ;("C-c d" . company-ispell)
+        ;("C-c f" . company-files)
+        ;("C-c a" . company-dabbrev)
+        ;("C-c d" . company-ispell)
          :map company-active-map
-              ("C-n"    . company-select-next)
-              ("C-p"    . company-select-previous)
-              ([return] . company-complete-selection)
-              ("C-w"    . backward-kill-word)
-              ("C-c"    . company-abort)
-              ("C-c"    . company-search-abort))
-  :diminish (company-mode . "ς")
-  :config
-  (global-company-mode)
-  ;; Tern for JS
-  (use-package company-tern
-    :ensure t
-    :general 
-    (general-leader-key
-     "tp" '(company-tern))
-    :init
-    (setq company-tern-property-marker "")
-    (setq company-tern-meta-as-single-line t)
-    :config
-    (add-to-list 'company-backends 'company-tern))
-  ;; HTML completion
-  (use-package company-web
-    :ensure t
-    :general 
-    (general-leader-key
-     "tw" '(company-web-html))
-    :config
-    (add-to-list 'company-backends 'company-web-html))
-  )
+         ("C-n"    . company-select-next)
+         ("C-p"    . company-select-previous)
+         ([return] . company-complete-selection)
+         ("C-w"    . backward-kill-word)
+         ("C-c"    . company-abort)
+         ("C-c"    . company-search-abort))
+  :diminish (company-mode . "ς"))
+#+END_SRC
+
+;; HTML completion
+;; [[https://github.com/osv/company-web][company-web]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-web
+  :ensure t
+  :defer t
+  :init
+  (with-eval-after-load 'company
+    (add-to-list 'company-backends 'company-web-html)))
+
+#+END_SRC
+
+;; Tern for JS
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-tern
+  :ensure t
+  :defer t
+  :init
+  (setq company-tern-property-marker "")
+  (setq company-tern-meta-as-single-line t)
+  (with-eval-after-load 'company
+    (add-to-list 'company-backends 'company-tern)))
+
+;; Enable JavaScript completion between <script>...</script> etc.
+;; https://github.com/osv/company-web
+(defadvice company-tern (before web-mode-set-up-ac-sources activate)
+  "Set `tern-mode' based on current language before running company-tern."
+  (message "advice")
+  (if (equal major-mode 'web-mode)
+      (let ((web-mode-cur-language
+             (web-mode-language-at-pos)))
+        (if (or (string= web-mode-cur-language "javascript")
+                (string= web-mode-cur-language "jsx")
+                )
+            (unless tern-mode (tern-mode))
+          (if tern-mode (tern-mode -1))))))
 #+END_SRC
 ** smartparens
 #+BEGIN_SRC emacs-lisp
@@ -2310,6 +2330,7 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
   "tk" '(which-key-mode)
   "ts" '(smartparens-strict-mode)
   "te" '(emmet-mode)
+  "tp" '(emmet-preview-mode)
   "tc" '(global-flycheck-mode)
   "tt" '(toggle-truncate-lines :which-key "truncate lines")
    )
