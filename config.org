@@ -669,7 +669,25 @@ The default Emacs [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Un
             "x;" '(goto-last-change :which-key "goto last change")
             "x," '(goto-last-change-reverse :which-key "goto last change reverse")))
 #+END_SRC
+** scroll-restore
 
+[[https://github.com/emacsmirror/scroll-restore][scroll-restore]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package scroll-restore
+  :ensure t
+  :config 
+(scroll-restore-mode 1)
+;; Allow scroll-restore to modify the cursor face
+(setq scroll-restore-handle-cursor t)
+;; Make the cursor invisible while POINT is off-screen
+(setq scroll-restore-cursor-type nil)
+;; Jump back to the original cursor position after scrolling
+(setq scroll-restore-jump-back t)
+  :general 
+    (general-leader-key
+            "tS" '(scroll-restore-mode)))
+#+END_SRC
 ** Avy
 
 [[https://github.com/abo-abo/avy][Avy]] is a package that lets you jump anywhere on screen based on character, characters, lines or words. It's one of my most used packages.
