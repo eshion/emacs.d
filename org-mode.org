@@ -244,7 +244,7 @@ See [[#Publishing][Publishing and Exporting]] for more details.
 Here is my current =org-agenda-files= setup.
 #+header: :tangle no
 #+begin_src emacs-lisp
-(setq org-agenda-files (quote ("~/personal/org"
+(setq org-agenda-files (quote ("~/gtd"
                                "~/git/org/client1"
                                "~/git/client2")))
 #+end_src

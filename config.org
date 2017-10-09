@@ -119,7 +119,6 @@ I make sure Emacs auto-saves often but the result is that it messes up my file t
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)) create-lockfiles nil)
 #+END_SRC
-
 ** File encoding system
 
 UTF-8 works for most of the files I tend to use
@@ -1620,6 +1619,12 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
     (setq org-file-apps org-file-apps-defaults-macosx)
     (setq org-src-tab-acts-natively t)
     (use-package htmlize :ensure t)
+    ; rsync
+    (defun rsync-org-fold ()
+      (interactive)
+      (save-window-excursion
+        (async-shell-command "~/tools/script/rsync_gtd.sh &")))
+    ;(run-at-time 0 10 'rsync-org-fold)
   #+END_SRC
 ** org-download
 #+BEGIN_SRC emacs-lisp
