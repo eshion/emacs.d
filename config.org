@@ -1615,7 +1615,8 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 ** Jump to Definition
 * Org-mode
   #+BEGIN_SRC emacs-lisp
-    (org-babel-load-file (concat emacs-base-dir "org-mode.org"))
+    ;(org-babel-load-file (concat emacs-base-dir "org-mode.org"))
+    (org-babel-load-file (concat emacs-base-dir "gtd.org"))
     (setq org-file-apps org-file-apps-defaults-macosx)
     (setq org-src-tab-acts-natively t)
     (use-package htmlize :ensure t)
