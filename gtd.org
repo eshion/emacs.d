@@ -80,25 +80,25 @@
 :END:
 #+begin_src emacs-lisp
 (setq org-directory "~/gtd")
-(setq org-default-notes-file "~/gtd/refile.org")
+(setq org-default-notes-file (concat org-directory "/refile.org"))
 
 ;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
 (setq org-capture-templates
-      (quote (("t" "todo" entry (file "~/gtd/refile.org")
+      (quote (("t" "todo" entry (file "refile.org")
                "* TODO %?\n%U\n%a\n")
-              ("r" "respond" entry (file "~/gtd/refile.org")
+              ("r" "respond" entry (file "refile.org")
                "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-              ("n" "note" entry (file "~/gtd/refile.org")
+              ("n" "note" entry (file "refile.org")
                "* %? :NOTE:\n%U\n%a\n")
-              ("j" "Journal" entry (file+datetree "~/gtd/diary.org")
+              ("j" "Journal" entry (file+datetree "diary.org")
                "* %?\n%U\n")
-              ("w" "org-protocol" entry (file "~/gtd/refile.org")
+              ("w" "org-protocol" entry (file "refile.org")
                "* TODO Review %c\n%U\n" :immediate-finish t)
-              ("m" "Meeting" entry (file "~/gtd/refile.org")
+              ("m" "Meeting" entry (file "refile.org")
                "* MEETING with %? :MEETING:\n%U")
-              ("p" "Phone call" entry (file "~/gtd/refile.org")
+              ("p" "Phone call" entry (file "refile.org")
                "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-              ("T" "Tickler" entry (file+headline "~/gtd/tickler.org" "Tickler")
+              ("T" "Tickler" entry (file+headline "tickler.org" "Tickler")
                "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
 #+end_src
 #+begin_src emacs-lisp
@@ -323,8 +323,8 @@
 *** Searches include archive files
 #+begin_src emacs-lisp
 ;; Include agenda archive files when searching for things
-(setq org-agenda-text-search-extra-files (quote (agenda-archives)))
-#+end_src
+(setq org-agenda-text-search-extra-files (quote (agenda-archives "~/personal/org/mucfc.org")))
+#+End_src
 *** Sticky Agendas
 #+begin_src emacs-lisp
 ;; Use sticky agenda's so they persist
