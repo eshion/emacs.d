@@ -1,48 +1,590 @@
-* GTD
-#+BEGIN_SRC emacs-lisp
+* Getting Started
+** Org-Mode Setup
+#+begin_src emacs-lisp
+;;; Org Mode
+(add-to-list 'auto-mode-alist '("\\.\\(org\\|org_archive\\|txt\\)$" . org-mode))
 ;; Standard key bindings
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cb" 'org-iswitchb)
+#+end_src
+
+** Agenda Setup
+#+begin_src emacs-lisp
+(if (boundp 'org-user-agenda-files)
+    (setq org-agenda-files org-user-agenda-files)
+  (setq org-agenda-files '("~/gtd/refile.org"
+                           "~/gtd/gtd.org"
+                           "~/gtd/tickler.org")))
+#+end_src
+** Key bindings
+#+begin_src emacs-lisp
+;; Custom Key Bindings
+(global-set-key (kbd "<f12>") 'org-agenda)
+(global-set-key (kbd "<f8>") 'org-cycle-agenda-files)
+(global-set-key (kbd "<f9> b") 'bbdb)
+(global-set-key (kbd "<f9> c") 'calendar)
+(global-set-key (kbd "<f9> f") 'boxquote-insert-file)
+(global-set-key (kbd "<f9> g") 'gnus)
+(global-set-key (kbd "<f9> r") 'boxquote-region)
+(global-set-key (kbd "<f9> v") 'visible-mode)
+(global-set-key (kbd "<f9> l") 'org-toggle-link-display)
+(global-set-key (kbd "M-<f9>") 'org-toggle-inline-images)
+(global-set-key (kbd "C-x n r") 'narrow-to-region)
+(global-set-key (kbd "<f11>") 'org-clock-goto)
+(global-set-key (kbd "C-<f11>") 'org-clock-in)
 (global-set-key (kbd "C-c c") 'org-capture)
-
-(setq org-agenda-files '("~/gtd/refile.org"
-                         "~/gtd/gtd.org"
-                         "~/gtd/tickler.org"))
-
-(setq org-capture-templates '(("t" "Todo [refile]" entry
-                               (file+headline "~/gtd/refile.org" "Task")
-                               "* TODO %i%?")
-                              ("T" "Tickler" entry
-                               (file+headline "~/gtd/tickler.org" "Tickler")
-                               "* %i%? \n %U")))
-
-(setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
-                           ("~/gtd/someday.org" :level . 1)
-                           ("~/gtd/tickler.org" :maxlevel . 2)))
-
-(setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+#+end_src
 
 
-(setq org-agenda-custom-commands 
-      '(("o" "At the office" tags-todo "@office"
-         ((org-agenda-overriding-header "Office")
-          (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))))
+* Tasks and States
+** TODO keywords
+#+begin_src emacs-lisp
+(setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
 
-(defun my-org-agenda-skip-all-siblings-but-first ()
-  "Skip all but the first non-done entry."
-  (let (should-skip-entry)
-    (unless (org-current-is-todo)
-      (setq should-skip-entry t))
-    (save-excursion
-      (while (and (not should-skip-entry) (org-goto-sibling t))
-        (when (org-current-is-todo)
-          (setq should-skip-entry t))))
-    (when should-skip-entry
-      (or (outline-next-heading)
-          (goto-char (point-max))))))
-		  
-(defun org-current-is-todo ()
-  (string= "TODO" (org-get-todo-state)))
+(setq org-todo-keyword-faces
+      (quote (("TODO" :foreground "red" :weight bold)
+              ("NEXT" :foreground "blue" :weight bold)
+              ("DONE" :foreground "forest green" :weight bold)
+              ("WAITING" :foreground "orange" :weight bold)
+              ("HOLD" :foreground "magenta" :weight bold)
+              ("CANCELLED" :foreground "forest green" :weight bold)
+              ("MEETING" :foreground "forest green" :weight bold)
+              ("PHONE" :foreground "forest green" :weight bold))))
+#+end_src
 
-#+END_SRC
+** Fast Todo Selection
+#+begin_src emacs-lisp 
+(setq org-use-fast-todo-selection t)
+#+end_src
+#+begin_src emacs-lisp
+(setq org-treat-S-cursor-todo-selection-as-state-change nil)
+#+end_src
+** TODO state triggers
+#+begin_src emacs-lisp 
+(setq org-todo-state-tags-triggers
+      (quote (("CANCELLED" ("CANCELLED" . t))
+              ("WAITING" ("WAITING" . t))
+              ("HOLD" ("WAITING") ("HOLD" . t))
+              (done ("WAITING") ("HOLD"))
+              ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+#+end_src
+* Adding New Tasks Quickly with Org Capture
+** Capture Templates
+:PROPERTIES:
+:CUSTOM_ID: CaptureTemplates
+:END:
+#+begin_src emacs-lisp
+(setq org-directory "~/gtd")
+(setq org-default-notes-file "~/gtd/refile.org")
+
+;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
+(setq org-capture-templates
+      (quote (("t" "todo" entry (file "~/gtd/refile.org")
+               "* TODO %?\n%U\n%a\n")
+              ("r" "respond" entry (file "~/gtd/refile.org")
+               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+              ("n" "note" entry (file "~/gtd/refile.org")
+               "* %? :NOTE:\n%U\n%a\n")
+              ("j" "Journal" entry (file+datetree "~/gtd/diary.org")
+               "* %?\n%U\n")
+              ("w" "org-protocol" entry (file "~/gtd/refile.org")
+               "* TODO Review %c\n%U\n" :immediate-finish t)
+              ("m" "Meeting" entry (file "~/gtd/refile.org")
+               "* MEETING with %? :MEETING:\n%U")
+              ("p" "Phone call" entry (file "~/gtd/refile.org")
+               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+              ("T" "Tickler" entry (file+headline "~/gtd/tickler.org" "Tickler")
+               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+#+end_src
+#+begin_src emacs-lisp
+;; Remove empty LOGBOOK drawers on clock out
+(defun bh/remove-empty-drawer-on-clock-out ()
+  (interactive)
+  (save-excursion
+    (beginning-of-line 0)
+    (org-remove-empty-drawer-at (point))))
+
+(add-hook 'org-clock-out-hook 'bh/remove-empty-drawer-on-clock-out 'append)
+
+#+end_src
+* Refiling Tasks
+** Refile Setup
+:PROPERTIES:
+:CUSTOM_ID: RefileSetup
+:END:
+#+begin_src emacs-lisp
+; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+(setq org-refile-targets (quote ((nil :maxlevel . 9)
+                                 (org-agenda-files :maxlevel . 9))))
+
+; Use full outline paths for refile targets - we file directly with IDO
+(setq org-refile-use-outline-path t)
+
+; Targets complete directly with IDO
+(setq org-outline-path-complete-in-steps nil)
+
+; Allow refile to create parent tasks with confirmation
+(setq org-refile-allow-creating-parent-nodes (quote confirm))
+
+; Use IDO for both buffer and file completion and ido-everywhere to t
+(setq org-completion-use-ido t)
+(setq ido-everywhere t)
+(setq ido-max-directory-size 100000)
+(ido-mode (quote both))
+; Use the current window when visiting files and buffers with ido
+(setq ido-default-file-method 'selected-window)
+(setq ido-default-buffer-method 'selected-window)
+; Use the current window for indirect buffer display
+(setq org-indirect-buffer-display 'current-window)
+
+;;;; Refile settings
+; Exclude DONE state tasks from refile targets
+(defun bh/verify-refile-target ()
+  "Exclude todo keywords with a done state from refile targets"
+  (not (member (nth 2 (org-heading-components)) org-done-keywords)))
+
+(setq org-refile-target-verify-function 'bh/verify-refile-target)
+#+end_src
+* Custom agenda views
+** Setup
+:PROPERTIES:
+:CUSTOM_ID: CustomAgendaViewSetup
+:END:
+
+#+begin_src emacs-lisp
+;; Do not dim blocked tasks
+(setq org-agenda-dim-blocked-tasks nil)
+
+;; Compact the block agenda view
+(setq org-agenda-compact-blocks t)
+
+;; Custom agenda command definitions
+(setq org-agenda-custom-commands
+      (quote (("N" "Notes" tags "NOTE"
+               ((org-agenda-overriding-header "Notes")
+                (org-tags-match-list-sublevels t)))
+              ("h" "Habits" tags-todo "STYLE=\"habit\""
+               ((org-agenda-overriding-header "Habits")
+                (org-agenda-sorting-strategy
+                 '(todo-state-down effort-up category-keep))))
+              (" " "Agenda"
+               ((agenda "" nil)
+                (tags "REFILE"
+                      ((org-agenda-overriding-header "Tasks to Refile")
+                       (org-tags-match-list-sublevels nil)))
+                (tags-todo "-CANCELLED/!"
+                           ((org-agenda-overriding-header "Stuck Projects")
+                            (org-agenda-skip-function 'bh/skip-non-stuck-projects)
+                            (org-agenda-sorting-strategy
+                             '(category-keep))))
+                (tags-todo "-HOLD-CANCELLED/!"
+                           ((org-agenda-overriding-header "Projects")
+                            (org-agenda-skip-function 'bh/skip-non-projects)
+                            (org-tags-match-list-sublevels 'indented)
+                            (org-agenda-sorting-strategy
+                             '(category-keep))))
+                (tags-todo "-CANCELLED/!NEXT"
+                           ((org-agenda-overriding-header (concat "Project Next Tasks"
+                                                                  (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                      ""
+                                                                    " (including WAITING and SCHEDULED tasks)")))
+                            (org-agenda-skip-function 'bh/skip-projects-and-habits-and-single-tasks)
+                            (org-tags-match-list-sublevels t)
+                            (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-sorting-strategy
+                             '(todo-state-down effort-up category-keep))))
+                (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
+                           ((org-agenda-overriding-header (concat "Project Subtasks"
+                                                                  (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                      ""
+                                                                    " (including WAITING and SCHEDULED tasks)")))
+                            (org-agenda-skip-function 'bh/skip-non-project-tasks)
+                            (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-sorting-strategy
+                             '(category-keep))))
+                (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
+                           ((org-agenda-overriding-header (concat "Standalone Tasks"
+                                                                  (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                      ""
+                                                                    " (including WAITING and SCHEDULED tasks)")))
+                            (org-agenda-skip-function 'bh/skip-project-tasks)
+                            (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-sorting-strategy
+                             '(category-keep))))
+                (tags-todo "-CANCELLED+WAITING|HOLD/!"
+                           ((org-agenda-overriding-header (concat "Waiting and Postponed Tasks"
+                                                                  (if bh/hide-scheduled-and-waiting-next-tasks
+                                                                      ""
+                                                                    " (including WAITING and SCHEDULED tasks)")))
+                            (org-agenda-skip-function 'bh/skip-non-tasks)
+                            (org-tags-match-list-sublevels nil)
+                            (org-agenda-todo-ignore-scheduled bh/hide-scheduled-and-waiting-next-tasks)
+                            (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)))
+                (tags "-REFILE/"
+                      ((org-agenda-overriding-header "Tasks to Archive")
+                       (org-agenda-skip-function 'bh/skip-non-archivable-tasks)
+                       (org-tags-match-list-sublevels nil))))
+               nil))))
+
+#+end_src
+** Filtering
+*** Automatically removing context based tasks with / RET
+:PROPERTIES:
+:CUSTOM_ID: CustomAgendaViewFilteringContext
+:END:
+#+begin_src emacs-lisp
+(defun bh/org-auto-exclude-function (tag)
+  "Automatic task exclusion in the agenda with / RET"
+  (and (cond
+        ((string= tag "hold")
+         t)
+        ((string= tag "farm")
+         t))
+       (concat "-" tag)))
+
+(setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
+#+end_src
+* Tags
+** Tags
+:PROPERTIES:
+:CUSTOM_ID: OrgTagAlist
+:END:
+#+begin_src emacs-lisp
+; Tags with fast selection keys
+(setq org-tag-alist (quote ((:startgroup)
+                            ("MUCFC" . ?m)
+                            ("@office" . ?o)
+                            ("@home" . ?H)
+                            (:endgroup)
+                            ("WAITING" . ?w)
+                            ("HOLD" . ?h)
+                            ("PERSONAL" . ?P)
+                            ("WORK" . ?W)
+                            ("ORG" . ?O)
+                            ("crypt" . ?E)
+                            ("NOTE" . ?n)
+                            ("CANCELLED" . ?c)
+                            ("FLAGGED" . ??))))
+
+; Allow setting single tags without the menu
+(setq org-fast-tag-selection-single-key (quote expert))
+
+; For tag searches ignore tasks with scheduled and deadline dates
+(setq org-agenda-tags-todo-honor-ignore-options t)
+#+end_src
+* Archiving
+** Archiving Subtrees
+** Archive Setup
+:PROPERTIES:
+:CUSTOM_ID: ArchiveSetup
+:END:
+#+begin_src emacs-lisp
+(setq org-archive-mark-done nil)
+(setq org-archive-location "%s_archive::* Archived Tasks")
+#+end_src
+
+#+begin_src emacs-lisp
+(defun bh/skip-non-archivable-tasks ()
+  "Skip trees that are not available for archiving"
+  (save-restriction
+    (widen)
+    ;; Consider only tasks with done todo headings as archivable candidates
+    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+          (subtree-end (save-excursion (org-end-of-subtree t))))
+      (if (member (org-get-todo-state) org-todo-keywords-1)
+          (if (member (org-get-todo-state) org-done-keywords)
+              (let* ((daynr (string-to-int (format-time-string "%d" (current-time))))
+                     (a-month-ago (* 60 60 24 (+ daynr 1)))
+                     (last-month (format-time-string "%Y-%m-" (time-subtract (current-time) (seconds-to-time a-month-ago))))
+                     (this-month (format-time-string "%Y-%m-" (current-time)))
+                     (subtree-is-current (save-excursion
+                                           (forward-line 1)
+                                           (and (< (point) subtree-end)
+                                                (re-search-forward (concat last-month "\\|" this-month) subtree-end t)))))
+                (if subtree-is-current
+                    subtree-end ; Has a date in this month or last month, skip it
+                  nil))  ; available to archive
+            (or subtree-end (point-max)))
+        next-headline))))
+#+end_src
+* Productivity Tools
+** Tuning the Agenda Views
+*** Searches include archive files
+#+begin_src emacs-lisp
+;; Include agenda archive files when searching for things
+(setq org-agenda-text-search-extra-files (quote (agenda-archives)))
+#+end_src
+*** Sticky Agendas
+#+begin_src emacs-lisp
+;; Use sticky agenda's so they persist
+(setq org-agenda-sticky t)
+#+end_src
+** Org Task structure and presentation
+*** Controlling display of leading stars on headlines
+#+begin_src emacs-lisp 
+(setq org-hide-leading-stars nil)
+#+end_src
+
+I now use org-indent mode which hides leading stars.
+*** org-indent mode
+#+begin_src emacs-lisp
+(setq org-startup-indented t)
+#+end_src
+*** Handling blank lines
+#+begin_src emacs-lisp
+(setq org-cycle-separator-lines 0)
+#+end_src
+#+begin_src emacs-lisp
+(setq org-blank-before-new-entry (quote ((heading)
+                                         (plain-list-item . auto))))
+#+end_src
+*** Adding new tasks quickly without disturbing the current task content
+#+begin_src emacs-lisp
+(setq org-insert-heading-respect-content nil)
+#+end_src
+*** Notes at the top
+#+begin_src emacs-lisp
+(setq org-reverse-note-order nil)
+#+end_src
+*** Searching and showing results
+#+begin_src emacs-lisp
+(setq org-show-following-heading t)
+(setq org-show-hierarchy-above t)
+(setq org-show-siblings (quote ((default))))
+#+end_src
+*** Editing and Special key handling
+#+begin_src emacs-lisp
+(setq org-special-ctrl-a/e t)
+(setq org-special-ctrl-k t)
+(setq org-yank-adjusted-subtrees t)
+#+end_src
+** Attachments
+#+begin_src emacs-lisp
+(setq org-id-method (quote uuidgen))
+#+end_src
+** Deadlines and Agenda Visibility
+#+begin_src emacs-lisp
+(setq org-deadline-warning-days 30)
+#+end_src
+** Exporting Tables to CSV
+#+begin_src emacs-lisp
+(setq org-table-export-default-format "orgtbl-to-csv")
+#+end_src
+** Minimize Emacs Frames
+#+begin_src emacs-lisp
+(setq org-link-frame-setup (quote ((vm . vm-visit-folder)
+                                   (gnus . org-gnus-no-new-news)
+                                   (file . find-file))))
+
+; Use the current window for C-c ' source editing
+(setq org-src-window-setup 'current-window)
+#+end_src
+** Logging stuff
+#+begin_src emacs-lisp
+(setq org-log-done (quote time))
+(setq org-log-into-drawer t)
+(setq org-log-state-notes-insert-after-drawers nil)
+#+end_src
+** Auto revert mode
+#+begin_src emacs-lisp
+(global-auto-revert-mode t)
+#+end_src
+** Handling Encryption
+#+begin_src emacs-lisp
+(require 'org-crypt)
+; Encrypt all entries before saving
+(org-crypt-use-before-save-magic)
+(setq org-tags-exclude-from-inheritance (quote ("crypt")))
+; GPG key to use for encryption
+(setq org-crypt-key "F0B66B40")
+#+end_src
+*** Auto Save Files
+:PROPERTIES:
+:CUSTOM_ID: AutoSaveFiles
+:END:
+#+begin_src emacs-lisp
+(setq org-crypt-disable-auto-save nil)
+#+end_src
+** Return follows links
+#+begin_src emacs-lisp
+(setq org-return-follows-link t)
+#+end_src
+** Prefer future dates or not?
+#+begin_src emacs-lisp
+(setq org-read-date-prefer-future 'time)
+#+end_src
+** Automatically change list bullets
+#+begin_src emacs-lisp
+(setq org-list-demote-modify-bullet (quote (("+" . "-")
+                                            ("*" . "-")
+                                            ("1." . "-")
+                                            ("1)" . "-")
+                                            ("A)" . "-")
+                                            ("B)" . "-")
+                                            ("a)" . "-")
+                                            ("b)" . "-")
+                                            ("A." . "-")
+                                            ("B." . "-")
+                                            ("a." . "-")
+                                            ("b." . "-"))))
+#+end_src
+** Remove indentation on agenda tags view
+#+begin_src emacs-lisp
+(setq org-tags-match-list-sublevels t)
+#+end_src
+** Agenda persistent filters
+#+begin_src emacs-lisp
+(setq org-agenda-persistent-filter t)
+#+end_src
+** Mail links open compose-mail
+#+begin_src emacs-lisp
+(setq org-link-mailto-program (quote (compose-mail "%a" "%s")))
+#+end_src
+** Using org-mime to email
+#+begin_src emacs-lisp
+(require 'org-mime)
+#+end_src
+** Remove multiple state change log details from the agenda
+#+begin_src emacs-lisp
+(setq org-agenda-skip-additional-timestamps-same-entry t)
+#+end_src
+** Drop old style references in tables
+#+begin_src emacs-lisp
+(setq org-table-use-standard-references (quote from))
+#+end_src
+** Use system settings for file-application selection
+#+begin_src emacs-lisp
+(setq org-file-apps (quote ((auto-mode . emacs)
+                            ("\\.mm\\'" . system)
+                            ("\\.x?html?\\'" . system)
+                            ("\\.pdf\\'" . system))))
+#+end_src
+** Use the current window for the agenda
+#+begin_src emacs-lisp
+; Overwrite the current window with the agenda
+(setq org-agenda-window-setup 'current-window)
+#+end_src
+** Delete IDs when cloning
+#+begin_src emacs-lisp
+(setq org-clone-delete-id t)
+#+end_src
+** Cycling plain lists
+#+begin_src emacs-lisp
+(setq org-cycle-include-plain-lists t)
+#+end_src
+** Showing source block syntax highlighting
+#+begin_src emacs-lisp
+(setq org-src-fontify-natively t)
+#+end_src
+** Inserting Structure Template Blocks
+#+begin_src emacs-lisp
+(setq org-structure-template-alist
+      (quote (("s" "#+begin_src ?\n\n#+end_src" "<src lang=\"?\">\n\n</src>")
+              ("e" "#+begin_example\n?\n#+end_example" "<example>\n?\n</example>")
+              ("q" "#+begin_quote\n?\n#+end_quote" "<quote>\n?\n</quote>")
+              ("v" "#+begin_verse\n?\n#+end_verse" "<verse>\n?\n</verse>")
+              ("c" "#+begin_center\n?\n#+end_center" "<center>\n?\n</center>")
+              ("l" "#+begin_latex\n?\n#+end_latex" "<literal style=\"latex\">\n?\n</literal>")
+              ("L" "#+latex: " "<literal style=\"latex\">?</literal>")
+              ("h" "#+begin_html\n?\n#+end_html" "<literal style=\"html\">\n?\n</literal>")
+              ("H" "#+html: " "<literal style=\"html\">?</literal>")
+              ("a" "#+begin_ascii\n?\n#+end_ascii")
+              ("A" "#+ascii: ")
+              ("i" "#+index: ?" "#+index: ?")
+              ("I" "#+include %file ?" "<include file=%file markup=\"?\">"))))
+#+end_src
+
+** NEXT is for tasks
+#+begin_src emacs-lisp
+(defun bh/mark-next-parent-tasks-todo ()
+  "Visit each parent task and change NEXT states to TODO"
+  (let ((mystate (or (and (fboundp 'org-state)
+                          state)
+                     (nth 2 (org-heading-components)))))
+    (when mystate
+      (save-excursion
+        (while (org-up-heading-safe)
+          (when (member (nth 2 (org-heading-components)) (list "NEXT"))
+            (org-todo "TODO")))))))
+
+(add-hook 'org-after-todo-state-change-hook 'bh/mark-next-parent-tasks-todo 'append)
+(add-hook 'org-clock-in-hook 'bh/mark-next-parent-tasks-todo 'append)
+#+end_src
+** Startup in folded view
+#+begin_src emacs-lisp
+(setq org-startup-folded t)
+#+end_src
+** Allow alphabetical list entries
+#+begin_src emacs-lisp
+(setq org-alphabetical-lists t)
+#+end_src
+** Using orgstruct mode for mail
+#+begin_src emacs-lisp
+(add-hook 'message-mode-hook 'orgstruct++-mode 'append)
+(add-hook 'message-mode-hook 'turn-on-auto-fill 'append)
+;(add-hook 'message-mode-hook 'bbdb-define-all-aliases 'append)
+(add-hook 'message-mode-hook 'orgtbl-mode 'append)
+;(add-hook 'message-mode-hook 'turn-on-flyspell 'append)
+(add-hook 'message-mode-hook
+          '(lambda () (setq fill-column 72))
+          'append)
+#+end_src
+** Preserving source block indentation
+#+begin_src emacs-lisp
+(setq org-src-preserve-indentation nil)
+(setq org-edit-src-content-indentation 0)
+#+end_src
+** Prevent editing invisible text
+#+begin_src emacs-lisp
+(setq org-catch-invisible-edits 'error)
+#+end_src
+** Use utf-8 as default coding system
+#+begin_src emacs-lisp
+(setq org-export-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(set-charset-priority 'unicode)
+(setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+#+end_src
+
+** Keep clock durations in hours
+#+begin_src emacs-lisp
+(setq org-time-clocksum-format
+      '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
+#+end_src
+** Create unique IDs for tasks when linking
+#+begin_src emacs-lisp
+(setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+#+end_src
+* Using Git for Automatic History, Backups, and Synchronization
+** Automatic Hourly Commits
+#+begin_src emacs-lisp
+(run-at-time "00:59" 3600 'org-save-all-org-buffers)
+#+end_src
+*** ~/bin/org-git-sync.sh
+#+begin_src sh
+#!/bin/sh
+# Add org file changes to the repository
+REPOS="org doc.norang.ca www.norang.ca"
+
+for REPO in $REPOS
+do
+    echo "Repository: $REPO"
+    cd ~/git/$REPO
+    # Remove deleted files
+    git ls-files --deleted -z | xargs -0 git rm >/dev/null 2>&1
+    # Add new files
+    git add . >/dev/null 2>&1
+    git commit -m "$(date)"
+done
+#+end_src
