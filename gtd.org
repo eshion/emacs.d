@@ -10,6 +10,9 @@
 #+end_src
 
 ** Agenda Setup
+
+https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html
+
 #+begin_src emacs-lisp
 (if (boundp 'org-user-agenda-files)
     (setq org-agenda-files org-user-agenda-files)
