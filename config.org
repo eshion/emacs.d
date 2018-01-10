@@ -1265,55 +1265,29 @@ Which key modal explanation
   :init
   (setq ztree-dir-move-focus t))
 #+END_SRC
-** treemacs
+** emacs-neotree
 
-[[https://github.com/Alexander-Miller/treemacs][treemacs]] - a tree layout file explorer for Emacs
+[[https://github.com/jaypei/emacs-neotree][emacs-neotree]] A Emacs tree plugin like NerdTree for Vim.
 
 #+BEGIN_SRC emacs-lisp
-(use-package treemacs
+(use-package neotree
   :ensure t
-  :defer t
-  :config
-  (progn
-    (setq treemacs-follow-after-init          t
-          treemacs-width                      35
-          treemacs-indentation                2
-          treemacs-git-integration            t
-          treemacs-collapse-dirs              3
-          treemacs-silent-refresh             nil
-          treemacs-change-root-without-asking nil
-          treemacs-sorting                    'alphabetic-desc
-          treemacs-show-hidden-files          t
-          treemacs-never-persist              nil
-          treemacs-is-never-other-window      nil
-          treemacs-goto-tag-strategy          'refetch-index)
-
-    (treemacs-follow-mode t)
-    (treemacs-filewatch-mode t))
   :general 
     (general-leader-key
-            "fn" '(treemacs-toggle)
-            "fN" '(treemacs-find-file)))
-  ;:bind
-  ;(:map global-map
-  ;      ([f8]        . treemacs-toggle)
-  ;      ("M-0"       . treemacs-select-window)
-  ;      ("C-c 1"     . treemacs-delete-other-windows)
-  ;      ("M-m fT"    . treemacs)
-  ;      ("M-m f C-t" . treemacs-find-file)))
-(use-package treemacs-projectile
-  :defer t
-  :ensure t
-  :config
-  (setq treemacs-header-function #'treemacs-projectile-create-header)
-  :general 
-    (general-leader-key
-            "fP" '(treemacs-projectile)
-            "fp" '(treemacs-projectile-toggle)))
-  ;:bind (:map global-map
-  ;            ("M-m fP" . treemacs-projectile)
-  ;            ("M-m fp" . treemacs-projectile-toggle)))
+            "fn" '(neotree-toggle)))
+#+END_SRC
+** sidebar
 
+[[https://github.com/sebastiencs/sidebar.el][sidebar]] is a customizable file explorer with git integration, but not only that. You can also get the list of buffers and your maildirs with mu4e.
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.local/share/icons-in-terminal/")
+(require 'sidebar)
+;(use-package sidebar
+;  :ensure t)
+;  :general 
+;    (general-leader-key
+;            "fx" '(sidebar-open)))
 #+END_SRC
 ** Perspective
 
@@ -2005,7 +1979,7 @@ Use Hydra to avoid remembering key bindings
      (global-set-key (kbd "C-c C-y") 'hydra-message/body)))
 #+end_src
 ** bbdb
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package bbdb
   :config
 
@@ -2041,10 +2015,10 @@ Use Hydra to avoid remembering key bindings
 ;      (define-key bbdb-mode-map (kbd "x r") 'bbdb-android-import-from-radicale))
 ;    (add-hook 'bbdb-mode-hook 'eh-bbdb-keybinding))
 
-  (use-package bbdb-handy
-    :config
-    (define-key message-mode-map "\C-cb" 'bbdb-handy)
-    (define-key message-mode-map "\t" 'bbdb-handy-message-tab))
+;  (use-package bbdb-handy
+;    :config
+;    (define-key message-mode-map "\C-cb" 'bbdb-handy)
+;    (define-key message-mode-map "\t" 'bbdb-handy-message-tab))
 
   (setq bbdb-file "~/contacts/contacts.bbdb"
         bbdb-phone-style nil
@@ -2255,9 +2229,9 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
 #+END_SRC
 ** global
 #+BEGIN_SRC emacs-lisp
-  (general-leader-key 
-   "SPC" (general-simulate-keys "M-x" t "M-x" M-x)
-   )
+;  (general-leader-key 
+;   "SPC" (general-simulate-keys "M-x" t "M-x" M-x)
+;   )
 #+END_SRC
 ** applications
 #+BEGIN_SRC emacs-lisp
