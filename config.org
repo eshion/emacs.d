@@ -404,6 +404,9 @@ scroll-step 1)
 #+END_SRC
 * Modal states
 ** General
+
+[[https://github.com/noctuid/general.el][general]] provides a more convenient way to bind keys in emacs for both evil and non-evil users.
+
 #+BEGIN_SRC emacs-lisp
   (use-package general
     :ensure t
@@ -434,8 +437,8 @@ scroll-step 1)
                               :timeout 0.25
                               "d" 'evil-normal-state))
  (general-leader-key 
-    "hT" '(evil-totur-start)
-    "se" '(evil-iedit-state/iedit-mode)
+    "hT" 'evil-totur-start
+    "se" 'evil-iedit-state/iedit-mode
     ))
 #+END_SRC
 ** Hydras
@@ -476,8 +479,8 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
   :ensure t
   :general 
   (general-leader-key 
-  "hm" '(discover-my-major)
-  "hM" '(discover-my-mode)))
+  "hm" 'discover-my-major
+  "hM" 'discover-my-mode))
 #+END_SRC
 
 * File Manager
@@ -492,8 +495,8 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
   :general 
     (general-leader-key
             :keymaps 'dired-mode-map
-            "fo" '(ergoemacs-open-in-external-app)
-            "fO" '(ergoemacs-open-in-desktop))
+            "fo" 'ergoemacs-open-in-external-app
+            "fO" 'ergoemacs-open-in-desktop)
   :init
   (setq dired-dwim-target t
         dired-recursive-copies 'always
@@ -685,7 +688,7 @@ The default Emacs [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Un
 (setq scroll-restore-jump-back t)
   :general 
     (general-leader-key
-            "tS" '(scroll-restore-mode)))
+            "tS" 'scroll-restore-mode))
 #+END_SRC
 ** Avy
 
@@ -701,9 +704,9 @@ The default Emacs [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Un
   (setq avy-style 'pre)
   :general 
     (general-leader-key
-            "jb" '(avy-pop-mark)
-            "jj" '(avy-goto-char-timer)
-            "jl" '(avy-goto-line)))
+            "jb" 'avy-pop-mark
+            "jj" 'avy-goto-char-timer
+            "jl" 'avy-goto-line))
 #+END_SRC
 ** jump-tree
 [[https://github.com/yangwen0228/jump-tree][jump-tree]] is an undo-tree like jumping implementation, so that we can jump back and forth in a tree way like undo-tree.
@@ -718,8 +721,8 @@ Just call M-x global-jump-tree-mode and then use M-, to jump previous, M-. to ju
   (global-jump-tree-mode))
   ;:general 
   ;  (general-leader-key
-  ;          "<left>" '(point-undo)
-  ;          "<right>" '(point-redo)))
+  ;          "<left>" 'point-undo
+  ;          "<right>" 'point-redo))
 #+END_SRC
 ** Highlight symbol
 
@@ -730,8 +733,8 @@ Just call M-x global-jump-tree-mode and then use M-, to jump previous, M-. to ju
   :ensure t
   :general 
     (general-leader-key
-            "xn" '(highlight-symbol-next)
-            "xp" '(highlight-symbol-prev))
+            "xn" 'highlight-symbol-next
+            "xp" 'highlight-symbol-prev)
   :config
   (highlight-symbol-nav-mode))
 #+END_SRC
@@ -931,7 +934,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "wr" '(sk/rotate-windows)
+    "wr" 'sk/rotate-windows
     )
 #+END_SRC
 
@@ -998,8 +1001,8 @@ Emacs buffers are those whose name starts with *."
   (general-leader-key 
    "bn" '(next-user-buffer :which-key "next buffer")
    "bp" '(previous-user-buffer :which-key "previous buffer")
-   "bN" '(next-emacs-buffer)
-   "bP" '(previous-emacs-buffer)
+   "bN" 'next-emacs-buffer
+   "bP" 'previous-emacs-buffer
    )
 #+END_SRC
 * Visual
@@ -1061,7 +1064,13 @@ Syntax based folding is great and all but sometimes I need to fold some random p
 (use-package dashboard
   :ensure t
   :config
-  (dashboard-setup-startup-hook))
+  (dashboard-setup-startup-hook)
+  (setq dashboard-items '((recents  . 5)
+                          (projects . 5)
+                          (agenda . 5)
+                          (bookmarks . 5)
+                          (registers . 5)))
+  )
 #+END_SRC
 * Editing
 ** Default
@@ -1200,26 +1209,26 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
   :ensure t
   :general 
   (general-leader-key 
-   "p!" '(projectile-run-shell-command-in-root)
-   "p%" '(projectile-replace-regexp)
-   "p&" '(projectile-run-async-shell-command-in-root)
-   "pa" '(projectile-toggle-between-implementation-and-test)
-   "pb" '(projectile-switch-to-buffer)
-   "pc" '(projectile-compile-project)
-   "pD" '(projectile-dired)
-   "pd" '(projectile-find-dir)
-   "pF" '(projectile-find-file-dwim)
-   "pf" '(projectile-find-file)
-   "/" '(projectile-find-file)
-   "pg" '(projectile-find-tag)
-   "pI" '(projectile-invalidate-cache)
-   "pk" '(projectile-kill-buffers)
-   "pp" '(projectile-switch-project)
-   "pR" '(projectile-replace)
-   "pr" '(projectile-recentf)
-   "pn" '(neotree-project-dir)
-   "pT" '(projectile-test-project)
-   "pv" '(projectile-vc))
+   "p!" 'projectile-run-shell-command-in-root
+   "p%" 'projectile-replace-regexp
+   "p&" 'projectile-run-async-shell-command-in-root
+   "pa" 'projectile-toggle-between-implementation-and-test
+   "pb" 'projectile-switch-to-buffer
+   "pc" 'projectile-compile-project
+   "pD" 'projectile-dired
+   "pd" 'projectile-find-dir
+   "pF" 'projectile-find-file-dwim
+   "pf" 'projectile-find-file
+   "/" 'projectile-find-file
+   "pg" 'projectile-find-tag
+   "pI" 'projectile-invalidate-cache
+   "pk" 'projectile-kill-buffers
+   "pp" 'projectile-switch-project
+   "pR" 'projectile-replace
+   "pr" 'projectile-recentf
+   "pn" 'neotree-project-dir
+   "pT" 'projectile-test-project
+   "pv" 'projectile-vc)
   :init
   ;;NeoTree can be opened (toggled) at projectile project root
   (defun neotree-project-dir ()
@@ -1274,7 +1283,7 @@ Which key modal explanation
   :ensure t
   :general 
     (general-leader-key
-            "fn" '(neotree-toggle)))
+            "fn" 'neotree-toggle))
 #+END_SRC
 ** sidebar
 
@@ -1283,11 +1292,9 @@ Which key modal explanation
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.local/share/icons-in-terminal/")
 (require 'sidebar)
-;(use-package sidebar
-;  :ensure t)
-;  :general 
-;    (general-leader-key
-;            "fx" '(sidebar-open)))
+(general-leader-key
+        "bs" 'sidebar-open)
+
 #+END_SRC
 ** Perspective
 
@@ -1298,12 +1305,12 @@ Which key modal explanation
   :ensure t
   :general 
     (general-leader-key
-            "ls" '(persp-switch)
-            "lk" '(persp-kill)
-            "lp" '(persp-prev)
-            "ln" '(persp-next)
-            "ll" '(persp-switch-last)
-            "lR" '(persp-rename))
+            "ls" 'persp-switch
+            "lk" 'persp-kill
+            "lp" 'persp-prev
+            "ln" 'persp-next
+            "ll" 'persp-switch-last
+            "lR" 'persp-rename)
   :config
   (persp-mode 1)
   (setq projectile-switch-project-action 'neotree-projectile-action))
@@ -1607,17 +1614,17 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
   :init 
   (setq-default org-download-image-dir "~/personal/org/img")
   :general
-  (general-leader-key "ody" '(org-download-yank)
-                      "ods" '(org-download-screenshot))
+  (general-leader-key "ody" 'org-download-yank
+                      "ods" 'org-download-screenshot)
   :config
   (org-download-enable))
 #+END_SRC
 ** key bindings
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   "oa" '(org-agenda)
-   "ob" '(org-iswitchb)
-   "oc" '(org-capture))
+   "oa" 'org-agenda
+   "ob" 'org-iswitchb
+   "oc" 'org-capture)
    
 #+END_SRC
 * Version control
@@ -1630,11 +1637,11 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
   :ensure t
   :general 
     (general-leader-key
-            "vgs" '(magit-status)
-            "vgb" '(magit-blame)
-            "vgm" '(magit-dispatch-popup)
-            "vgS" '(magit-stage-file)
-            "vgU" '(magit-unstage-file)
+            "vgs" 'magit-status
+            "vgb" 'magit-blame
+            "vgm" 'magit-dispatch-popup
+            "vgS" 'magit-stage-file
+            "vgU" 'magit-unstage-file
             ))
 #+END_SRC
 ** Highlight diffs
@@ -1653,11 +1660,11 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
              diff-hl-revert-hunk)
   :general 
     (general-leader-key
-            "v]" '(diff-hl-next-hunk)
-            "v[" '(diff-hl-previous-hunk)
-            "vm" '(diff-hl-mark-hunk)
-            "vh" '(diff-hl-diff-goto-hunk)
-            "vH" '(diff-hl-revert-hunk))
+            "v]" 'diff-hl-next-hunk
+            "v[" 'diff-hl-previous-hunk
+            "vm" 'diff-hl-mark-hunk
+            "vh" 'diff-hl-diff-goto-hunk
+            "vH" 'diff-hl-revert-hunk)
   :config
   (global-diff-hl-mode)
   (diff-hl-flydiff-mode)
@@ -1675,8 +1682,8 @@ The ability to move to past versions of the current file, [[https://github.com/p
              git-timemachine-switch-branch)
   :general 
     (general-leader-key
-            "vgl" '(git-timemachine-toggle)
-            "vgL" '(git-timemachine-switch-branch)
+            "vgl" 'git-timemachine-toggle
+            "vgL" 'git-timemachine-switch-branch
             ))
 #+END_SRC
 ** Browse remote files
@@ -1688,7 +1695,7 @@ The ability to move to past versions of the current file, [[https://github.com/p
   :ensure t
   :general 
     (general-leader-key
-            "vr" '(browse-at-remote)))
+            "vr" 'browse-at-remote))
 #+END_SRC
 ** =ediff=
 
@@ -2236,54 +2243,54 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
 ** applications
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   "ad" '(dired)
-   "ag" '(gnus)
-   "ap" '(proced)
-   "al" '(list-processces)
-   "au" '(undo-tree-visualize)
+   "ad" 'dired
+   "ag" 'gnus
+   "ap" 'proced
+   "al" 'list-processces
+   "au" 'undo-tree-visualize
    "aw" '(wttrin :which-key "Weather")
-   "an" '(neotree-dir "~/develop/git/"))
+   "an" '(neotree-dir "~/develop/git/" :which-key "NeoTreeDir"))
 #+END_SRC
 ** buffers
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   ;"bn" '(next-buffer)
-   ;"bp" '(previous-buffer)
-   "bw" '(read-only-mode)
-   "bc" '(create-new-buffer)
-   "bk" '(kill-default-buffer)
-   "bK" '(kill-all-buffers)
+   ;"bn" 'next-buffer
+   ;"bp" 'previous-buffer
+   "bw" 'read-only-mode
+   "bc" 'create-new-buffer
+   "bk" 'kill-default-buffer
+   "bK" 'kill-all-buffers
    )
 #+END_SRC
 ** compile/comments
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   "cC" '(compile)
-   "ch" '(hide/show-comments-toggle)
-   "ck" '(kill-compilation)
-   "cr" '(recompile)
+   "cC" 'compile
+   "ch" 'hide/show-comments-toggle
+   "ck" 'kill-compilation
+   "cr" 'recompile
    )
 #+END_SRC
 ** files
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   "fb" '(bookmark-jump)
-   "fc" '(copy-file)
-   "ff" '(find-file)
-   "fg" '(rgrep)
-   "fj" '(dired-jump)
-   "fl" '(find-file-literally)
-   "fS" '(evil-write-all)
-   "fs" '(save-buffer)
-   "fr" '(rename-current-buffer-file)
-   "fD" '(delete-current-buffer-file)
+   "fb" 'bookmark-jump
+   "fc" 'copy-file
+   "ff" 'find-file
+   "fg" 'rgrep
+   "fj" 'dired-jump
+   "fl" 'find-file-literally
+   "fS" 'evil-write-all
+   "fs" 'save-buffer
+   "fr" 'rename-current-buffer-file
+   "fD" 'delete-current-buffer-file
    )
 #+END_SRC
 *** files/convert
  #+BEGIN_SRC emacs-lisp :tangle no
  (general-leader-key 
-    "fd" '(unix2dos)
-    "fu" '(dos2unix)
+    "fd" 'unix2dos
+    "fu" 'dos2unix
     )
  #+END_SRC
 *** emacs
@@ -2301,21 +2308,21 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
 ** help
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-  "hn" '(view-emacs-news)
-  "hw" '(which-key-show-top-level)
+  "hn" 'view-emacs-news
+  "hw" 'which-key-show-top-level
    )
 #+END_SRC
 *** help-describe
  #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "hb" '(describe-bindings)
-    "hc" '(describe-char)
-    "hf" '(describe-function)
-    "hK" '(describe-keymap)
-    "hk" '(describe-key)
-    "hp" '(describe-package)
-    "ht" '(describe-theme)
-    "hv" '(describe-variable)
+    "hb" 'describe-bindings
+    "hc" 'describe-char
+    "hf" 'describe-function
+    "hK" 'describe-keymap
+    "hk" 'describe-key
+    "hp" 'describe-package
+    "ht" 'describe-theme
+    "hv" 'describe-variable
     )
  #+END_SRC
 ** insertion
@@ -2324,32 +2331,32 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
 ** jump/join/split
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-  "jD" '(dired-jump-other-window)
-  "jd" '(dired-jump)
-  "jf" '(find-function)
-  "jI" '(lambda)
-  "ji" '(counsel-imenu)
-  "jn" '(sp-newline)
-  "jo" '(open-line)
-  "jq" '(dumb-jump-quick-look)
-  "js" '(sp-split-sexp)
-  "jv" '(find-variable)
+  "jD" 'dired-jump-other-window
+  "jd" 'dired-jump
+  "jf" 'find-function
+  "jI" 'lambda
+  "ji" 'counsel-imenu
+  "jn" 'sp-newline
+  "jo" 'open-line
+  "jq" 'dumb-jump-quick-look
+  "js" 'sp-split-sexp
+  "jv" 'find-variable
    )
 #+END_SRC
 ** narrow/numbers
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-  "nf" '(narrow-to-defun)
-  "np" '(narrow-to-page)
-  "nr" '(narrow-to-region)
-  "nw" '(widen)
+  "nf" 'narrow-to-defun
+  "np" 'narrow-to-page
+  "nr" 'narrow-to-region
+  "nw" 'widen
    )
 #+END_SRC
 ** search/symbol
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   "sb" '(swiper-all)
-   "ss" '(swiper)
+   "sb" 'swiper-all
+   "ss" 'swiper
    )
 #+END_SRC
 *** ag
@@ -2380,23 +2387,23 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
   "tn" '(linum-mode :which-key "line number")
-  "tv" '(visual-line-mode)
-  "ta" '(company-mode)
-  "ti" '(indent-guide-global-mode)
-  "to" '(global-origami-mode)
-  "tk" '(which-key-mode)
-  "ts" '(smartparens-strict-mode)
-  "te" '(emmet-mode)
-  "tp" '(emmet-preview-mode)
-  "tc" '(global-flycheck-mode)
+  "tv" 'visual-line-mode
+  "ta" 'company-mode
+  "ti" 'indent-guide-global-mode
+  "to" 'global-origami-mode
+  "tk" 'which-key-mode
+  "ts" 'smartparens-strict-mode
+  "te" 'emmet-mode
+  "tp" 'emmet-preview-mode
+  "tc" 'global-flycheck-mode
   "tt" '(toggle-truncate-lines :which-key "truncate lines")
    )
 #+END_SRC
 *** colors
  #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "tCd" '(rainbow-delimiters-mode)
-    "tCp" '(highlight-parentheses-mode)
+    "tCd" 'rainbow-delimiters-mode
+    "tCp" 'highlight-parentheses-mode
     )
  #+END_SRC
 *** editing-styles
@@ -2420,81 +2427,81 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
 ** windows
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   "w-" '(sk/split-below-and-move)
-   "w|" '(sk/split-right-and-move)
-   "w=" '(balance-windows)
-   "wF" '(make-frame)
-   "wf" '(follow-mode)
-   "wH" '(evil-window-move-far-left)
-   "wh" '(evil-window-left)
-   "wJ" '(evil-window-move-very-bottom)
-   "wj" '(evil-window-down)
-   "wK" '(evil-window-move-very-top)
-   "wk" '(evil-window-up)
-   "wL" '(evil-window-move-far-right)
-   "wl" '(evil-window-right)
-   "w<down>" '(evil-window-down)
-   "w<left>" '(evil-window-left)
-   "w<right>" '(evil-window-right)
-   "w<up>" '(evil-window-up)
-   "w<S-down>" '(evil-window-move-very-bottom)
-   "w<S-left>" '(evil-window-move-far-left)
-   "w<S-right>" '(evil-window-move-far-right)
-   "w<S-up>" '(evil-window-move-very-top)
-   "wo" '(other-frame)
-   "wS" '(split-window-below-and-focus)
-   "ws" '(split-window-below)
-   "wU" '(winner-redo)
-   "wu" '(winner-undo)
-   "wV" '(split-window-right-and-focus)
-   "wv" '(split-window-right)
-   "ww" '(other-window)
+   "w-" 'sk/split-below-and-move
+   "w|" 'sk/split-right-and-move
+   "w=" 'balance-windows
+   "wF" 'make-frame
+   "wf" 'follow-mode
+   "wH" 'evil-window-move-far-left
+   "wh" 'evil-window-left
+   "wJ" 'evil-window-move-very-bottom
+   "wj" 'evil-window-down
+   "wK" 'evil-window-move-very-top
+   "wk" 'evil-window-up
+   "wL" 'evil-window-move-far-right
+   "wl" 'evil-window-right
+   "w<down>" 'evil-window-down
+   "w<left>" 'evil-window-left
+   "w<right>" 'evil-window-right
+   "w<up>" 'evil-window-up
+   "w<S-down>" 'evil-window-move-very-bottom
+   "w<S-left>" 'evil-window-move-far-left
+   "w<S-right>" 'evil-window-move-far-right
+   "w<S-up>" 'evil-window-move-very-top
+   "wo" 'other-frame
+   "wS" 'split-window-below-and-focus
+   "ws" 'split-window-below
+   "wU" 'winner-redo
+   "wu" 'winner-undo
+   "wV" 'split-window-right-and-focus
+   "wv" 'split-window-right
+   "ww" 'other-window
    )
 #+END_SRC
 ** text
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
-   "x<TAB>" '(indent-rigidly)
-   "xc" '(count-region)
-   "xU" '(upcase-region)
-   "xu" '(downcase-region)
+   "x<TAB>" 'indent-rigidly
+   "xc" 'count-region
+   "xU" 'upcase-region
+   "xu" 'downcase-region
    )
 #+END_SRC
 *** align
  #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "xaa" '(align)
-    "xac" '(align-current)
+    "xaa" 'align
+    "xac" 'align-current
     )
  #+END_SRC
 *** delete
  #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "xdw" '(delete-whitespace-rectangle)
+    "xdw" 'delete-whitespace-rectangle
     )
  #+END_SRC
 *** justification
  #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "xjc" '(set-justification-center)
-    "xjf" '(set-justification-full)
-    "xjl" '(set-justification-left)
-    "xjn" '(set-justification-none)
-    "xjr" '(set-justification-right)
+    "xjc" 'set-justification-center
+    "xjf" 'set-justification-full
+    "xjl" 'set-justification-left
+    "xjn" 'set-justification-none
+    "xjr" 'set-justification-right
     )
  #+END_SRC
 *** transpos
  #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "xtc" '(transpos-chars)
-    "xtl" '(transpos-lines)
-    "xtw" '(transpos-words)
+    "xtc" 'transpos-chars
+    "xtl" 'transpos-lines
+    "xtw" 'transpos-words
     )
  #+END_SRC
 *** words
  #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "xwd" '(defind-word-at-point)
+    "xwd" 'defind-word-at-point
     )
  #+END_SRC
 * Load Customize
