@@ -39,7 +39,7 @@
   (when window-system
     (tool-bar-mode 0)
     (scroll-bar-mode 0)
-    (menu-bar-mode 0)
+    (menu-bar-mode 1)
     (tooltip-mode 0))
 #+END_SRC
 
@@ -118,6 +118,11 @@ I make sure Emacs auto-saves often but the result is that it messes up my file t
 #+BEGIN_SRC emacs-lisp
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)) create-lockfiles nil)
+#+END_SRC
+** SavePlace
+When you visit a file, point goes to the last place where it was when you previously visited the same file.
+#+BEGIN_SRC emacs-lisp
+(save-place-mode 1)
 #+END_SRC
 ** File encoding system
 
@@ -467,6 +472,37 @@ Emacs has 100s of bindings and it is impossible to remember them all. Sometimes 
          '(which-key-show-top-level :which-key "top level bindings"))
 
   :config
+  ;; Replacements for how KEY is replaced when which-key displays
+  ;;   KEY → FUNCTION
+  ;; Eg: After "C-c", display "right → winner-redo" as "▶ → winner-redo"
+  (setq which-key-key-replacement-alist
+        '(("<\\([[:alnum:]-]+\\)>" . "\\1")
+          ("left"                  . "◀")
+          ("right"                 . "▶")
+          ("up"                    . "▲")
+          ("down"                  . "▼")
+          ("delete"                . "DEL") ; delete key
+          ("\\`DEL\\'"             . "BS") ; backspace key
+          ("next"                  . "PgDn")
+          ("prior"                 . "PgUp"))
+
+        ;; List of "special" keys for which a KEY is displayed as just
+        ;; K but with "inverted video" face... not sure I like this.
+        which-key-special-keys '("RET" "DEL" ; delete key
+                                 "ESC" "BS" ; backspace key
+                                 "SPC" "TAB")
+
+        ;; Replacements for how part or whole of FUNCTION is replaced:
+        which-key-description-replacement-alist
+        '(("Prefix Command" . "prefix")
+          ("\\`calc-"       . "") ; Hide "calc-" prefixes when listing M-x calc keys
+          ("\\`projectile-" . "𝓟/")
+          ("\\`org-babel-"  . "ob/"))
+
+        ;; Underlines commands to emphasize some functions:
+        which-key-highlighted-command-list
+        '("\\(rectangle-\\)\\|\\(-rectangle\\)"
+          "\\`org-"))
   (which-key-mode))
 #+END_SRC
 
@@ -568,6 +604,17 @@ Instead of taking me to the very beginning or very end, they now take me to the 
 ;(define-key dired-mode-map
 ;  (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
 #+END_SRC
+** peep-dired
+[[https://github.com/asok/peep-dired][peep-dired]] is a minor mode that can be enabled from a dired buffer. Once enabled it will show the file from point in the other window. Moving to the other file within the dired buffer with down/up or C-n/C-p will display different file. Hitting SPC will scroll the peeped file down, whereas C-SPC and backspace will scroll it up.
+
+#+BEGIN_SRC emacs-lisp
+;;preview files in dired
+(use-package peep-dired
+  :ensure t
+  :defer t ; don't access `dired-mode-map' until `peep-dired' is loaded
+  :bind (:map dired-mode-map
+              ("P" . peep-dired)))
+#+END_SRC
 ** quick preview
 [[https://github.com/myuhe/quick-preview.el][Quick-preview]] is an application for previewing file using external tool.
 
@@ -588,6 +635,30 @@ Instead of taking me to the very beginning or very end, they now take me to the 
                       "SPC" 'quick-preview-at-point))
 #+END_SRC
 * Navigation
+** helm
+
+[[http://tuhdo.github.io/helm-intro.html][Helm]] is an extremely powerful package that provides a search interface that narrows the matches as you type. 
+What makes it powerful is the range of back-ends that you can access through helm. I don’t use it for a lot
+of things (I slightly prefer ivy in general), but one of my favourites is helm-for-files. This gives you a 
+search interface where you start typing the name of a file and it narrows a list of files from multiple useful
+ sources: currently opened files; recent files; bookmarked files; files in the current directory; and files anywhere
+ on your system using your system’s locate command. Basically, it find any file anywhere on your system, showing
+ you the most likely matches first. Hitting RET to select a file opens it in Emacs as usual.
+
+#+BEGIN_SRC emacs-lisp
+(use-package helm
+  :ensure t
+  :init
+  (progn
+    (require 'helm-config)
+    ;; limit max number of matches displayed for speed
+    (setq helm-candidate-number-limit 100)
+    ;; ignore boring files like .o and .a
+    (setq helm-ff-skip-boring-files t)
+    ;; replace locate with spotlight on Mac
+    (setq helm-locate-command "mdfind -name %s %s"))
+  :bind (("C-x f" . helm-for-files)))
+#+END_SRC
 ** Flx
 
 [[https://github.com/lewang/flx][Flx]] is a package that helps in fuzzy file narrowing like [[http://www.sublimetext.com][Sublime Text]]. The most prominent package that uses this is =flx-ido= found in the same repository. I find =ivy='s built-in fuzzy matching more than good enough. However, this is in case I need something different/more and when this is installed, Ivy automatically uses this for fuzzy finding. This is particularly useful if I decide to use [[*Helm][Helm]] full time instead of ivy.
@@ -595,7 +666,10 @@ Instead of taking me to the very beginning or very end, they now take me to the 
 #+BEGIN_SRC emacs-lisp
 (use-package flx-ido
   :ensure t
-  :defer t)
+  :config 
+  (flx-ido-mode 1)
+  (setq ido-enable-flex-matching t)
+  (setq ido-use-faces nil))
 #+END_SRC
 ** ido
 #+BEGIN_SRC emacs-lisp
@@ -603,7 +677,23 @@ Instead of taking me to the very beginning or very end, they now take me to the 
   :ensure t
   :config
   (ido-mode 1)
-  (ido-everywhere 1))
+  (ido-everywhere 1)
+  (defun ido-sort-mtime ()
+    "Reorder the IDO file list to sort from most recently modified."
+    (setq ido-temp-list
+          (sort ido-temp-list
+                (lambda (a b)
+                  (ignore-errors
+                    (time-less-p
+                     (sixth (file-attributes (concat ido-current-directory b)))
+                     (sixth (file-attributes (concat ido-current-directory a))))))))
+    (ido-to-end  ;; move . files to end (again)
+     (delq nil (mapcar
+              (lambda (x) (and (char-equal (string-to-char x) ?.) x))
+              ido-temp-list))))
+  
+  (add-hook 'ido-make-file-list-hook 'ido-sort-mtime)
+  (add-hook 'ido-make-dir-list-hook 'ido-sort-mtime))
 #+END_SRC
 ** ido-grid-mode
 #+BEGIN_SRC emacs-lisp
@@ -619,8 +709,8 @@ Instead of taking me to the very beginning or very end, they now take me to the 
 #+BEGIN_SRC emacs-lisp
 (use-package smex
   :ensure t
+  :init (smex-initialize)
   :config
-  (smex-initialize)
   (global-set-key (kbd "M-x") 'smex)
   (global-set-key (kbd "C-x x") 'smex)
   (global-set-key (kbd "M-X") 'smex-major-mode-commands)
@@ -1031,23 +1121,139 @@ I particularly like this [[https://github.com/k-talo/volatile-highlights.el][pac
   :ensure t
   :demand t
   :init
-  (setq powerline-default-separator 'arrow-fade)
+  (setq powerline-default-separator 'alternate)
   :config
   (require 'spaceline-config)
   (spaceline-spacemacs-theme)
   (spaceline-helm-mode))
 #+END_SRC
-** Origami - folding based on indentation/syntax
-
-Emacs has a built-in =hide-show= mode but it isn't great. [[https://github.com/gregsexton/origami.el][Origami]] improves it a bit.
-
+** tabbar
 #+BEGIN_SRC emacs-lisp
-(use-package origami
+(use-package tabbar
   :ensure t
-  :commands (origami-toggle-node)
+  :bind
+  ("<C-S-iso-lefttab>" . tabbar-backward)
+  ("<C-tab>" . tabbar-forward)
+
+  :config
+  (set-face-attribute
+   'tabbar-button nil
+   :box '(:line-width 1 :color "gray19"))
+
+  (set-face-attribute
+   'tabbar-selected nil
+   :foreground "orange"
+   :background "gray19"
+   :box '(:line-width 1 :color "gray19"))
+
+  (set-face-attribute
+   'tabbar-unselected nil
+   :foreground "gray75"
+   :background "gray25"
+   :box '(:line-width 1 :color "gray19"))
+
+  (set-face-attribute
+   'tabbar-highlight nil
+   :foreground "black"
+   :background "orange"
+   :underline nil
+   :box '(:line-width 1 :color "gray19" :style nil))
+
+  (set-face-attribute
+   'tabbar-modified nil
+   :foreground "orange red"
+   :background "gray25"
+   :box '(:line-width 1 :color "gray19"))
+
+  (set-face-attribute
+   'tabbar-selected-modified nil
+   :foreground "orange red"
+   :background "gray19"
+   :box '(:line-width 1 :color "gray19"))
+
+  (custom-set-variables
+   '(tabbar-separator (quote (0.2))))
+
+  ;; Change padding of the tabs
+  ;; we also need to set separator to avoid overlapping tabs by highlighted tabs
+  ;; (custom-set-variables
+  ;;  '(tabbar-separator (quote (1.0))))
+  (defun tabbar-buffer-tab-label (tab)
+    "Return a label for TAB.
+  That is, a string used to represent it on the tab bar."
+    (let ((label  (if tabbar--buffer-show-groups
+                      (format " [%s] " (tabbar-tab-tabset tab))
+                    (format " %s " (tabbar-tab-value tab)))))
+      ;; Unless the tab bar auto scrolls to keep the selected tab
+      ;; visible, shorten the tab label to keep as many tabs as possible
+      ;; in the visible area of the tab bar.
+      (if tabbar-auto-scroll-flag
+          label
+        (tabbar-shorten
+         label (max 1 (/ (window-width)
+                         (length (tabbar-view
+                                  (tabbar-current-tabset)))))))))
+
+  (defun px-tabbar-buffer-select-tab (event tab)
+    "On mouse EVENT, select TAB."
+    (let ((mouse-button (event-basic-type event))
+          (buffer (tabbar-tab-value tab)))
+      (cond
+       ((eq mouse-button 'mouse-2) (with-current-buffer buffer (kill-buffer)))
+       ((eq mouse-button 'mouse-3) (pop-to-buffer buffer t))
+       (t (switch-to-buffer buffer)))
+      (tabbar-buffer-show-groups nil)))
+
+  (defun px-tabbar-buffer-help-on-tab (tab)
+    "Return the help string shown when mouse is onto TAB."
+    (if tabbar--buffer-show-groups
+        (let* ((tabset (tabbar-tab-tabset tab))
+               (tab (tabbar-selected-tab tabset)))
+          (format "mouse-1: switch to buffer %S in group [%s]"
+                  (buffer-name (tabbar-tab-value tab)) tabset))
+      (format "\
+mouse-1: switch to %S\n\
+mouse-2: kill %S\n\
+mouse-3: Open %S in another window"
+              (buffer-name (tabbar-tab-value tab))
+              (buffer-name (tabbar-tab-value tab))
+              (buffer-name (tabbar-tab-value tab)))))
+
+  (defun px-tabbar-buffer-groups ()
+    "Sort tab groups."
+    (list (cond ((or
+                  (eq major-mode 'dired-mode)
+                  (string-equal "*" (substring (buffer-name) 0 1))) "emacs")
+                (t "user"))))
+  (setq tabbar-help-on-tab-function 'px-tabbar-buffer-help-on-tab
+        tabbar-select-tab-function 'px-tabbar-buffer-select-tab
+        tabbar-buffer-groups-function 'px-tabbar-buffer-groups)
+
+  :init
+  (tabbar-mode 0))
+#+END_SRC
+** Code Block Folding
+#+BEGIN_SRC emacs-lisp
+(defun es/hs-show-all ()
+  (interactive)
+  (hs-minor-mode 1)
+  (hs-show-all))
+
+(defun es/hs-hide-all ()
+  (interactive)
+  (hs-minor-mode 1)
+  (hs-hide-all))
+
+(defun es/hs-toggle-hiding ()
+  (interactive)
+  (hs-minor-mode 1)
+  (hs-toggle-hiding))
+
+
+(use-package hs-minor-mode
   :general 
     (general-leader-key
-            "x-" '(origami-toggle-node :which-key "syntax-based fold toggle")))
+            "xh" 'es/hs-toggle-hiding))
 #+END_SRC
 ** Vimish fold - Fold regions based on selection
 
@@ -1058,19 +1264,6 @@ Syntax based folding is great and all but sometimes I need to fold some random p
   :ensure t
   :commands (vimish-fold-toggle
              vimish-fold))
-#+END_SRC
-** dashboard
-#+BEGIN_SRC emacs-lisp
-(use-package dashboard
-  :ensure t
-  :config
-  (dashboard-setup-startup-hook)
-  (setq dashboard-items '((recents  . 5)
-                          (projects . 5)
-                          (agenda . 5)
-                          (bookmarks . 5)
-                          (registers . 5)))
-  )
 #+END_SRC
 * Editing
 ** Default
@@ -1126,14 +1319,12 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
 #+BEGIN_SRC emacs-lisp
 (use-package visual-regexp
   :ensure t
-  :commands (vr/query-replace)
+  :init
+  (use-package visual-regexp-steroids :ensure t)
   :general 
-    (general-leader-key
-            "xr" '(vr/query-replace :which-key "replace word/expression"))
-  :config
-  (use-package visual-regexp-steroids
-    :ensure t
-    :commands (vr/select-query-replace)))
+  (general-leader-key
+    "xr" '(vr/replace :which-key "replace word")
+    "xq" '(vr/query-replace :which-key "query replace word/expression")))
 #+END_SRC
 ** multiple edit
 [[https://github.com/hlissner/evil-multiedit][evil-multiedit]]
@@ -1142,6 +1333,27 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
   :ensure t
   :config 
     (evil-multiedit-default-keybinds))
+#+END_SRC
+** Drag Stuff
+[[https://github.com/rejeep/drag-stuff.el][Drag Stuff]] is a minor mode for Emacs that makes it possible to drag stuff (words, region, lines) around in Emacs.
+#+BEGIN_SRC emacs-lisp
+(use-package drag-stuff
+  :ensure t
+  :config 
+    (drag-stuff-global-mode 1)
+    (drag-stuff-define-keys))
+#+END_SRC
+- Suggested key-bindings
+To activate the suggested key-bindings, <M-up>, <M-down>, <M-right>, <M-left>
+** counsel-yank-pop
+[[https://github.com/abo-abo/swiper][counsel-yank-pop]] is a minor mode for Emacs that makes it possible to drag stuff (words, region, lines) around in Emacs.
+#+BEGIN_SRC emacs-lisp
+(use-package counsel
+  :ensure t
+  :bind
+  (("M-y" . counsel-yank-pop)
+   :map ivy-minibuffer-map
+   ("M-y" . ivy-next-line)))
 #+END_SRC
 ** Custom functions
 *** Rename the current buffer and the file associated with it
@@ -1281,20 +1493,10 @@ Which key modal explanation
 #+BEGIN_SRC emacs-lisp
 (use-package neotree
   :ensure t
+  :init (setq-default neo-show-hidden-files t)
   :general 
     (general-leader-key
             "fn" 'neotree-toggle))
-#+END_SRC
-** sidebar
-
-[[https://github.com/sebastiencs/sidebar.el][sidebar]] is a customizable file explorer with git integration, but not only that. You can also get the list of buffers and your maildirs with mu4e.
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.local/share/icons-in-terminal/")
-(require 'sidebar)
-(general-leader-key
-        "bs" 'sidebar-open)
-
 #+END_SRC
 ** Perspective
 
@@ -1592,6 +1794,9 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 #+END_SRC
 ** Document
 ** Code Folding
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
 ** Jump to Definition
 * Org-mode
   #+BEGIN_SRC emacs-lisp
@@ -1608,11 +1813,15 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
     ;(run-at-time 0 10 'rsync-org-fold)
   #+END_SRC
 ** org-download
+
+[[https://github.com/abo-abo/org-download][This extension]] facilitates moving images from point A to point B.
+
 #+BEGIN_SRC emacs-lisp
 (use-package org-download
   :ensure t
   :init 
-  (setq-default org-download-image-dir "~/personal/org/img")
+  (setq-default org-download-image-dir "./img")
+  (setq-default org-download-heading-lvl nil)
   :general
   (general-leader-key "ody" 'org-download-yank
                       "ods" 'org-download-screenshot)
@@ -1635,13 +1844,25 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :ensure t
+  :commands magit-status magit-blame
+  :init
+  (defadvice magit-status (around magit-fullscreen activate)
+    (window-configuration-to-register :magit-fullscreen)
+    ad-do-it
+    (delete-other-windows))
+  :config
+  (setq magit-branch-arguments nil
+        ;; use ido to look for branches
+        magit-completing-read-function 'magit-ido-completing-read
+        ;; don't put "origin-" in front of new branch names by default
+        magit-default-tracking-name-function 'magit-default-tracking-name-branch-only
+        magit-push-always-verify nil
+        ;; Get rid of the previous advice to go into fullscreen
+        magit-restore-window-configuration t)
   :general 
     (general-leader-key
             "vgs" 'magit-status
             "vgb" 'magit-blame
-            "vgm" 'magit-dispatch-popup
-            "vgS" 'magit-stage-file
-            "vgU" 'magit-unstage-file
             ))
 #+END_SRC
 ** Highlight diffs
@@ -1826,6 +2047,20 @@ you can use something like:
   :config
     (setq cal-china-x-important-holidays cal-china-x-chinese-holidays)
     (setq calendar-holidays cal-china-x-important-holidays))
+#+END_SRC
+
+** markdown-mode
+
+[[https://github.com/jrblevin/markdown-mode][markdown-mode]] is a major mode for editing Markdown-formatted text.
+
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
 #+END_SRC
 * Internet
 ** Browser
@@ -2068,6 +2303,29 @@ Use Hydra to avoid remembering key bindings
 ** Social Network
 ** Web Feed
 * DevOps
+** shell-pop
+[[https://github.com/kyagi/shell-pop-el][shell-pop.el]] helps you to use shell easily on Emacs. Only one key action to work.
+
+#+BEGIN_SRC emacs-lisp
+(use-package shell-pop
+  :ensure t
+  :bind (("C-t" . shell-pop))
+  :config
+  (setq shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
+  (setq shell-pop-term-shell "/usr/local/bin/zsh")
+  ;; need to do this manually or not picked up by `shell-pop'
+  (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type))
+#+END_SRC
+** persistent-scratch
+[[https://github.com/Fanael/persistent-scratch][persistent-scratch]]  is an Emacs package that preserves the state of scratch buffers accross Emacs sessions by saving the state to and restoring it from a file.
+
+#+BEGIN_SRC emacs-lisp
+;; persistent-scratch
+(use-package persistent-scratch
+  :ensure t
+  :config
+  (persistent-scratch-setup-default))
+#+END_SRC
 * Package Management
 ** Package Manager
 ** Package Configuration
@@ -2165,9 +2423,9 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
 #+END_SRC
 * Theme
 #+BEGIN_SRC emacs-lisp
-(use-package atom-one-dark-theme
-  :ensure t
-  :config (load-theme 'atom-one-dark t))
+;(use-package atom-one-dark-theme
+;  :ensure t
+;  :config (load-theme 'dracula t));'atom-one-dark t))
 #+END_SRC
 * Multimedia
 * Fun
