@@ -226,17 +226,6 @@ The built-in incremental search is pretty good but the most common regex I type 
 (setq search-whitespace-regexp ".*?")
 #+END_SRC
 
-** Persistent history
-
-I prefer to have some persistent history for some prompts.
-
-#+BEGIN_SRC emacs-lisp
-(savehist-mode)
-
-(setq recentf-max-saved-items 1000
-      recentf-exclude '("/tmp/" "/ssh:"))
-(recentf-mode)
-#+END_SRC
 ** Narrow to region
 
 This is such a an amazing feature but is disabled by default. Let's re-enable it. For further reference on narrow region, [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Narrowing.html][refer to the Emacs manual]].
@@ -267,6 +256,7 @@ Emacs has the built-in [[https://www.gnu.org/software/emacs/manual/html_node/ema
 An Emacs "mode" is a collection of behavior. It has both major and minor modes. One such useful mode is the =recentf-mode=, which stands for recent files mode. Let's give configure some options and enable it.
 
 #+BEGIN_SRC emacs-lisp
+(savehist-mode)
 ;; Recentf mode changes
 (setq recentf-max-saved-items 1000
       recentf-exclude '("/tmp/" "/ssh:" ".*/personal\\.*" ".*\\.emacs\\.*"))
@@ -615,6 +605,17 @@ Instead of taking me to the very beginning or very end, they now take me to the 
   :bind (:map dired-mode-map
               ("P" . peep-dired)))
 #+END_SRC
+** dired-narrow
+
+ [[https://github.com/Fuco1/dired-hacks][dired-hacks]], then you can type filter strings to dynamically filter down a dired listing to match the filter.
+
+#+BEGIN_SRC emacs-lisp
+;;narrow dired to match filter
+(use-package dired-narrow
+  :ensure t
+  :bind (:map dired-mode-map
+              ("/" . dired-narrow)))
+#+END_SRC
 ** quick preview
 [[https://github.com/myuhe/quick-preview.el][Quick-preview]] is an application for previewing file using external tool.
 
@@ -737,17 +738,20 @@ search interface where you start typing the name of a file and it narrows a list
 The default Emacs [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Undo.html][undo]] command is weird. Better undo and redo states are given by [[https://www.emacswiki.org/emacs/UndoTree][undo-tree]] mode and, as an added bonus, also gives a visualization tree
 
 #+BEGIN_SRC emacs-lisp
-  (use-package undo-tree
-    :ensure t
-    :diminish undo-tree-mode
-    :general 
-    (general-define-key :states '(normal)
-                        "br" '(undo-tree-redo)
-                        "bu" '(undo-tree-undo)
-                        "bU" '(undo-tree-visualize)
-                        "U" '(undo-tree-visualize :which-key "undo tree"))
-    :config
-    (global-undo-tree-mode 1))
+(use-package undo-tree
+  :ensure t
+  :diminish undo-tree-mode
+  :general 
+  (general-define-key :states '(normal)
+                      "br" '(undo-tree-redo)
+                      "bu" '(undo-tree-undo)
+                      "bU" '(undo-tree-visualize)
+                      "U" '(undo-tree-visualize :which-key "undo tree"))
+  :config
+  (global-undo-tree-mode 1)
+  (global-set-key (kbd "M-z") 'undo)
+  (defalias 'redo 'undo-tree-redo)
+  (global-set-key (kbd "M-Z") 'redo))
 #+END_SRC
 ** Goto the last change
 
@@ -1095,6 +1099,35 @@ Emacs buffers are those whose name starts with *."
    "bP" 'previous-emacs-buffer
    )
 #+END_SRC
+*** triple wheel
+#+BEGIN_SRC emacs-lisp
+(defvar *my-previous-buffer* t
+  "can we switch?")
+
+(defun my-previous-buffer ()
+  (interactive)
+  (message "custom prev: *my-previous-buffer*=%s" *my-previous-buffer*)
+  (when *my-previous-buffer*
+    (previous-user-buffer)
+    (setq *my-previous-buffer* nil)
+    (run-at-time "1 sec" nil (lambda ()
+                               (setq *my-previous-buffer* t)))))
+
+(defvar *my-next-buffer* t
+  "can we switch?")
+
+(defun my-next-buffer ()
+  (interactive)
+  (message "custom prev: *my-next-buffer*=%s" *my-next-buffer*)
+  (when *my-next-buffer*
+    (next-user-buffer)
+    (setq *my-next-buffer* nil)
+    (run-at-time "1 sec" nil (lambda ()
+                               (setq *my-next-buffer* t)))))
+
+(global-set-key [triple-wheel-right] 'my-previous-buffer)
+(global-set-key [triple-wheel-left] 'my-next-buffer)
+#+END_SRC
 * Visual
 
 This section adds some packages which enhance visual feedback and mostly work behind the scenes to get stuff done.
@@ -1106,12 +1139,22 @@ I particularly like this [[https://github.com/k-talo/volatile-highlights.el][pac
 #+BEGIN_SRC emacs-lisp
 (use-package volatile-highlights
   :ensure t
-  :demand t
   :diminish volatile-highlights-mode
+  :config
+  (add-hook 'after-init-hook 'global-color-identifiers-mode))
+#+END_SRC
+
+** Color Identifiers Mode
+
+[[https://github.com/ankurdave/color-identifiers-mode][Color Identifiers]] is a minor mode for Emacs that highlights each source code identifier uniquely based on its name.
+
+#+BEGIN_SRC emacs-lisp
+(use-package color-identifiers-mode
+  :ensure t
+  :diminish color-identifiers-mode
   :config
   (volatile-highlights-mode t))
 #+END_SRC
-
 ** Mode line
 
 [[https://github.com/TheBB/spaceline][Spaceline]] is similar to the [[http://spacemacs.org][Spacemacs]] mode-line. It's pretty cool.
@@ -1339,6 +1382,7 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
 #+BEGIN_SRC emacs-lisp
 (use-package drag-stuff
   :ensure t
+  :diminish drag-stuff-mode
   :config 
     (drag-stuff-global-mode 1)
     (drag-stuff-define-keys))
@@ -2062,6 +2106,17 @@ you can use something like:
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
 #+END_SRC
+** elfeed
+
+[[https://github.com/skeeto/elfeed][elfeed]] is an extensible web feed reader for Emacs, supporting both Atom and RSS.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package elfeed
+  :ensure t
+  :config
+  (setq elfeed-feeds
+        "http://pragmaticemacs.com/feed/"))
+#+END_SRC
 * Internet
 ** Browser
 ** Mail
@@ -2423,9 +2478,10 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
 #+END_SRC
 * Theme
 #+BEGIN_SRC emacs-lisp
-;(use-package atom-one-dark-theme
-;  :ensure t
-;  :config (load-theme 'dracula t));'atom-one-dark t))
+(use-package moe-theme
+  :ensure t
+  :config 
+  (load-theme 'majapahit-light t))
 #+END_SRC
 * Multimedia
 * Fun
