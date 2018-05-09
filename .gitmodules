@@ -3,4 +3,4 @@
 	url = https://github.com/hakimel/reveal.js/
 [submodule "src/org-mime"]
 	path = src/org-mime
-	url = https://github.com/redguardtoo/org-mime
+	url = https://github.com/org-mime/org-mime 
