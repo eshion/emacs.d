@@ -1160,15 +1160,14 @@ I particularly like this [[https://github.com/k-talo/volatile-highlights.el][pac
 [[https://github.com/TheBB/spaceline][Spaceline]] is similar to the [[http://spacemacs.org][Spacemacs]] mode-line. It's pretty cool.
 
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline
-  :ensure t
-  :demand t
+(use-package spaceline :ensure t
   :init
-  (setq powerline-default-separator 'alternate)
+  (setq powerline-default-separator 'arrow-fade))
+
+(use-package spaceline-config :ensure spaceline
   :config
-  (require 'spaceline-config)
-  (spaceline-spacemacs-theme)
-  (spaceline-helm-mode))
+  (spaceline-helm-mode 1)
+  (spaceline-spacemacs-theme))
 #+END_SRC
 ** tabbar
 #+BEGIN_SRC emacs-lisp
@@ -1759,7 +1758,7 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
          ("C-w"    . backward-kill-word)
          ("C-c"    . company-abort)
          ("C-c"    . company-search-abort))
-  :diminish (company-mode . "ς"))
+  :diminish company-mode)
 #+END_SRC
 
 ;; HTML completion
@@ -2358,18 +2357,28 @@ Use Hydra to avoid remembering key bindings
 ** Social Network
 ** Web Feed
 * DevOps
-** shell-pop
-[[https://github.com/kyagi/shell-pop-el][shell-pop.el]] helps you to use shell easily on Emacs. Only one key action to work.
+** shell-popup
 
 #+BEGIN_SRC emacs-lisp
-(use-package shell-pop
-  :ensure t
-  :bind (("C-t" . shell-pop))
-  :config
-  (setq shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
-  (setq shell-pop-term-shell "/usr/local/bin/zsh")
-  ;; need to do this manually or not picked up by `shell-pop'
-  (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type))
+(defvar es-shell-popup-buffer nil)
+
+(defun es-shell-popup ()
+  "Toggle a shell popup buffer with the current file's directory as cwd."
+  (interactive)
+  (unless (buffer-live-p es-shell-popup-buffer)
+    (save-window-excursion (shell "*Popup Shell*"))
+    (setq es-shell-popup-buffer (get-buffer "*Popup Shell*")))
+  (let ((win (get-buffer-window es-shell-popup-buffer))
+	(dir (file-name-directory (or (buffer-file-name)
+				      ;; dired
+				      dired-directory
+				      ;; use HOME
+				      "~/"))))
+    (if win
+	(quit-window nil win)
+      (pop-to-buffer es-shell-popup-buffer nil t)
+      (comint-send-string nil (concat "cd " dir "\n")))))
+(global-set-key (kbd "C-t") 'es-shell-popup)
 #+END_SRC
 ** persistent-scratch
 [[https://github.com/Fanael/persistent-scratch][persistent-scratch]]  is an Emacs package that preserves the state of scratch buffers accross Emacs sessions by saving the state to and restoring it from a file.
@@ -2387,6 +2396,7 @@ Use Hydra to avoid remembering key bindings
 #+BEGIN_SRC emacs-lisp
 (use-package pyim
   :ensure nil
+  :diminish pyim-isearch-mode
   :demand t
   :config
   ;; 激活 basedict 拼音词库
@@ -2404,7 +2414,7 @@ Use Hydra to avoid remembering key bindings
   ;; 我使用全拼
   (setq pyim-default-scheme 'quanpin)
 
-  ;; 设置 pyim 探针设置，这是 pyim 高级功能设置，可以实现 *无痛* 中英文切换 :-)
+  ;; 设置 pyim 探针设置，这是 pyim 高级功能设置，可以实现 *无痛* 中英文切换
   ;; 我自己使用的中英文动态切换规则是：
   ;; 1. 光标只有在注释里面时，才可以输入中文。
   ;; 2. 光标前是汉字字符时，才能输入中文。
@@ -2537,7 +2547,7 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
 (use-package moe-theme
   :ensure t
   :config 
-  (load-theme 'majapahit-light t))
+  (load-theme 'moe-dark t))
 #+END_SRC
 * Multimedia
 * Fun
@@ -2730,16 +2740,16 @@ And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wtt
    )
 #+END_SRC
 *** ag
- #+BEGIN_SRC emacs-lisp :tangle no
+ #+BEGIN_SRC emacs-lisp
  (general-leader-key 
-    "sa" '()
+    "sa" 'counsel-ag
     )
  #+END_SRC
 *** grep
- #+BEGIN_SRC emacs-lisp :tangle no
-   (general-leader-key 
-    "sg" '()
-    )
+ #+BEGIN_SRC emacs-lisp
+ (general-leader-key 
+  "sg" 'counsel-git-grep
+  )
  #+END_SRC
 *** ack
  #+BEGIN_SRC emacs-lisp :tangle no
