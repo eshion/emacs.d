@@ -2395,7 +2395,7 @@ Use Hydra to avoid remembering key bindings
 
 #+BEGIN_SRC emacs-lisp
 (use-package pyim
-  :ensure nil
+  :ensure t
   :diminish pyim-isearch-mode
   :demand t
   :config
