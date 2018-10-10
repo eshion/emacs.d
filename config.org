@@ -1169,8 +1169,9 @@ I particularly like this [[https://github.com/k-talo/volatile-highlights.el][pac
   (spaceline-helm-mode 1)
   (spaceline-spacemacs-theme))
 #+END_SRC
+
 ** tabbar
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package tabbar
   :ensure t
   :bind
@@ -1273,6 +1274,11 @@ mouse-3: Open %S in another window"
 
   :init
   (tabbar-mode 0))
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+(use-package awesome-tab
+  :config
+  (awesome-tab-mode 1))
 #+END_SRC
 ** Code Block Folding
 #+BEGIN_SRC emacs-lisp
@@ -1628,7 +1634,7 @@ Syntax highlighting for =json= files.
 
 [[http://ternjs.net][Tern]] describes itself as a code analysis engine and [[https://github.com/ternjs/tern][this]] is an implementation to bring it into Emacs.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package tern
   :ensure t
   :diminish tern-mode
@@ -1637,7 +1643,29 @@ Syntax highlighting for =json= files.
   (progn
     (setq tern-command (append tern-command '("--no-port-file")))
     (add-hook 'js2-mode-hook '(lambda () (tern-mode t)))))
+
 #+END_SRC
+
+[[https://github.com/ananthakumaran/tide][Tide]] - TypeScript Interactive Development Environment for Emacs
+
+#+BEGIN_SRC emacs-lisp
+(use-package tide
+  :ensure t
+  :after (js2-mode company flycheck)
+  :config 
+  (progn
+    (add-hook 'js2-mode-hook #'tide-setup)
+    (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)))
+  ;:hook ((js2-mode . tide-setup)
+  ;       (js2-mode . tide-hl-identifier-mode)
+  ;       (before-save . tide-format-before-save)))
+
+;; configure javascript-tide checker to run after your default javascript checker
+;(flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+
+#+END_SRC
+
+
 *** Beautify
 
 I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but just like I have formatters for others, I'm keeping this.
@@ -1731,7 +1759,7 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
              company-ispell
              company-c-headers
              company-jedi
-             company-tern
+             ;company-tern
              company-web-html
              company-auctex)
   :init
@@ -1776,7 +1804,7 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 
 ;; Tern for JS
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-tern
   :ensure t
   :defer t
