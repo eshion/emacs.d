@@ -147,7 +147,8 @@ Mac has an [[http://stuff-things.net/2015/10/05/emacs-visible-bell-work-around-o
 Emacs has an option to [[https://www.emacswiki.org/emacs/TruncateLines][wrap lines]] which is disabled by default. What this means is that, if the text goes beyond the screen, it will wrap it so that you can see all the text. However, it wraps it with these weird indicators that I find more annoying. Plus, I make sure my code stays within 100 characters always and prefer the soft line wrap while writing prose. Let's make sure it doesn't wrap again.
 
 #+BEGIN_SRC emacs-lisp
-(setq-default truncate-lines t)
+;(setq-default truncate-lines t)
+(global-visual-line-mode 1)
 #+END_SRC
 
 ** Large file warning
@@ -2575,7 +2576,7 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
 (use-package moe-theme
   :ensure t
   :config 
-  (load-theme 'moe-dark t))
+  (load-theme 'moe-light t))
 #+END_SRC
 * Multimedia
 * Fun
