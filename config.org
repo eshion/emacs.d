@@ -1160,7 +1160,7 @@ I particularly like this [[https://github.com/k-talo/volatile-highlights.el][pac
 
 [[https://github.com/TheBB/spaceline][Spaceline]] is similar to the [[http://spacemacs.org][Spacemacs]] mode-line. It's pretty cool.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package spaceline :ensure t
   :init
   (setq powerline-default-separator 'arrow-fade))
@@ -2031,7 +2031,7 @@ Writable grep/ack/ag/pt buffer and apply the changes to files.
 
 #+END_SRC
 ** Reveal
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package ox-reveal
     :ensure t
     :init
@@ -2055,7 +2055,7 @@ Writable grep/ack/ag/pt buffer and apply the changes to files.
 
 ** Calendar
 [[https://github.com/kiwanami/emacs-calfw][calfw]] - A calendar framework for Emacs
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package calfw
   :ensure t
   :general 
@@ -2149,7 +2149,7 @@ you can use something like:
 ** Browser
 ** Mail
 ** gnus
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun my-gnus-group-list-subscribed-groups ()
   "List all subscribed groups with or without un-read messages"
   (interactive)
@@ -2422,7 +2422,7 @@ Use Hydra to avoid remembering key bindings
 ** pyim
 [[https://github.com/tumashu/pyim][pyim]] 一个 emacs 中文输入法，支持全拼，双拼，五笔和仓颉
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package pyim
   :ensure t
   :diminish pyim-isearch-mode
