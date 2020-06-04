@@ -2522,7 +2522,7 @@ Use Hydra to avoid remembering key bindings
 
 Now that we have made sure we have installed use-package, we will make sure another nice package to change the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Mode-Line-Variables.html][mode-line minor mode list]]. For this, we can use use-package itself and also go ahead and diminish some built-in minor modes.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package diminish
   :ensure t
   :demand t
@@ -2601,7 +2601,7 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
 #+END_SRC
 
 ** indent-guide
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package indent-guide
   :ensure t
   :diminish indent-guide-mode
