@@ -2615,6 +2615,11 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
   :config 
   (load-theme 'moe-light t))
 #+END_SRC
+[[https://github.com/rougier/elegant-emacs][elegant theme]]
+#+BEGIN_SRC emacs-lisp 
+(require 'elegance)
+(elegance-light)
+#+END_SRC
 * Multimedia
 * Fun
 ** Weather
