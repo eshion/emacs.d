@@ -273,7 +273,7 @@ In Mac, the default fullscreen goes to a new workspace. Change this behavior so 
 #+END_SRC
 
 ** Fonts
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (let ((emacs-font-size 14)
       (emacs-font-name "WenQuanYi Micro Hei Mono"))
   (set-frame-font (format "%s-%s" (eval emacs-font-name) (eval emacs-font-size)))
@@ -442,7 +442,7 @@ scroll-step 1)
     (setq evil-default-state 'emacs)
     (setq evil-disable-insert-state-bindings t)
     :config
-    (evil-mode 1)
+    ;(evil-mode 1)
   :general 
     (general-define-key :states '(insert emacs)
                         "f" (general-key-dispatch 'self-insert-command
