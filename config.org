@@ -1916,6 +1916,17 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
   :config
   (org-download-enable))
 #+END_SRC
+** valign
+
+[[https://github.com/casouri/valign][valign]], Pixel-perfect visual alignment for Org and Markdown tables.
+
+#+BEGIN_SRC emacs-lisp
+(use-package valign
+  :init 
+  (require 'valign)
+  :hook
+  ('org-mode . #'valign-mode))
+#+END_SRC
 ** key bindings
 #+BEGIN_SRC emacs-lisp
   (general-leader-key 
@@ -2160,6 +2171,16 @@ you can use something like:
   :config
   (setq elfeed-feeds
         "http://pragmaticemacs.com/feed/"))
+#+END_SRC
+** ledger-mode
+
+[[https://github.com/ledger/ledger-mode][ledger-mode]] provides a major mode for editing files in the format used by the [[https://github.com/ledger/ledger][ledger]] command-line accounting system.
+
+It also provides automated support for some ledger workflows, such as reconciling transactions, or running certain reports.
+
+#+BEGIN_SRC ledger-mode
+(use-package ledger-mode
+  :ensure t)
 #+END_SRC
 * Internet
 ** Browser
@@ -2588,7 +2609,7 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
     (indent-guide-global-mode))
 #+END_SRC
 * Theme
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package moe-theme
   :ensure t
   :config 
