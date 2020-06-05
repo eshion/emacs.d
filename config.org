@@ -2626,7 +2626,7 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
 
 And while we are it, why not go ahead and [[https://github.com/bcbcarl/emacs-wttrin][get some weather status too]].
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package wttrin
   :ensure t
   :commands (wttrin)
