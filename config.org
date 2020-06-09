@@ -1815,7 +1815,8 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
   :defer t
   :init
   (with-eval-after-load 'company
-    (add-to-list 'company-backends 'company-web-html)))
+    (add-to-list 'company-backends 'company-web-html)
+    (add-to-list 'company-backends #'company-tabnine)))
 
 #+END_SRC
 
@@ -1844,6 +1845,12 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
                 )
             (unless tern-mode (tern-mode))
           (if tern-mode (tern-mode -1))))))
+#+END_SRC
+
+;; [[https://github.com/TommyX12/company-tabnine][company-tabnine]] A company-mode backend for TabNine, the all-language autocompleter: https://tabnine.com/
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package company-tabnine :ensure t)
 #+END_SRC
 ** smartparens
 #+BEGIN_SRC emacs-lisp
