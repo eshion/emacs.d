@@ -1619,7 +1619,7 @@ Which key modal explanation
 
 Occasionally I'm forced to open SCSS files.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package scss-mode
   :ensure t
   :mode "\\.scss$")
@@ -1637,7 +1637,7 @@ Syntax highlighting for =json= files.
 
 [[https://github.com/smihica/emmet-mode][Emmet]] is very useful while writing HTML. Look in to the guide for more details as to how to use it.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package emmet-mode
   :ensure t
   :diminish (emmet-mode . "ε")
@@ -1809,14 +1809,13 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 ;; HTML completion
 ;; [[https://github.com/osv/company-web][company-web]]
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-web
   :ensure t
   :defer t
   :init
   (with-eval-after-load 'company
-    (add-to-list 'company-backends 'company-web-html)
-    (add-to-list 'company-backends #'company-tabnine)))
+    (add-to-list 'company-backends 'company-web-html)))
 
 #+END_SRC
 
@@ -1850,7 +1849,11 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 ;; [[https://github.com/TommyX12/company-tabnine][company-tabnine]] A company-mode backend for TabNine, the all-language autocompleter: https://tabnine.com/
 
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package company-tabnine :ensure t)
+(use-package company-tabnine 
+  :ensure t
+  :init
+  (with-eval-after-load 'company
+    (add-to-list 'company-backends #'company-tabnine)))
 #+END_SRC
 ** smartparens
 #+BEGIN_SRC emacs-lisp
