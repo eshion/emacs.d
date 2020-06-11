@@ -2188,9 +2188,15 @@ you can use something like:
 
 It also provides automated support for some ledger workflows, such as reconciling transactions, or running certain reports.
 
-#+BEGIN_SRC ledger-mode
+#+BEGIN_SRC emacs-lisp
 (use-package ledger-mode
-  :ensure t)
+  :ensure t
+  :init
+  (setq ledger-clear-whole-transactions 1)
+
+  :config
+  (add-to-list 'evil-emacs-state-modes 'ledger-report-mode)
+  :mode "\\.ledger\\'")
 #+END_SRC
 * Internet
 ** Browser
