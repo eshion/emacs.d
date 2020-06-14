@@ -1292,7 +1292,7 @@ mouse-3: Open %S in another window"
   :init
   (tabbar-mode 0))
 #+END_SRC
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package awesome-tab
   :config
   (awesome-tab-mode 1))
@@ -1398,6 +1398,27 @@ This is the [[https://github.com/benma/visual-regexp.el][good old search and rep
   :ensure t
   :config 
     (evil-multiedit-default-keybinds))
+#+END_SRC
+
+https://emacs-china.org/t/topic/5227 多重光标的讨论
+#+BEGIN_SRC emacs-lisp
+(define-key evil-normal-state-map "Q" #'moon/query-relace-point)
+(define-key evil-visual-state-map "Q" #'moon/query-replace-region)
+(defun moon/query-replace-region ()
+  "Query replace selected region."
+  (interactive)
+  (query-replace (buffer-substring-no-properties
+                  (region-beginning)
+                  (region-end))
+                 (completing-read "Replace to: " ())
+                 ))
+(defun moon/query-relace-point ()
+  "Query replace thing at point."
+  (interactive)
+  (let ((word (thing-at-point 'word t)))
+    (query-replace word
+                   (completing-read (format "Replace \"%s\" to: " word) ())
+                   nil (beginning-of-line))))
 #+END_SRC
 ** Drag Stuff
 [[https://github.com/rejeep/drag-stuff.el][Drag Stuff]] is a minor mode for Emacs that makes it possible to drag stuff (words, region, lines) around in Emacs.
@@ -1897,7 +1918,7 @@ I'm not sure how useful [[https://github.com/yasuyk/web-beautify][this]] is but 
 #+END_SRC
 ** Jump to Definition
 * Org-mode
-  #+BEGIN_SRC emacs-lisp
+  #+BEGIN_SRC emacs-lisp :tangle no
     ;(org-babel-load-file (concat emacs-base-dir "org-mode.org"))
     (org-babel-load-file (concat emacs-base-dir "gtd.org"))
     (setq org-file-apps org-file-apps-defaults-macosx)
@@ -2625,16 +2646,16 @@ ALPHA : [ %(frame-parameter nil 'alpha) ]
     (indent-guide-global-mode))
 #+END_SRC
 * Theme
+[[https://github.com/rougier/elegant-emacs][elegant theme]]
+#+BEGIN_SRC emacs-lisp 
+(require 'elegance)
+;(elegance-light)
+#+END_SRC
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package moe-theme
   :ensure t
   :config 
   (load-theme 'moe-light t))
-#+END_SRC
-[[https://github.com/rougier/elegant-emacs][elegant theme]]
-#+BEGIN_SRC emacs-lisp 
-(require 'elegance)
-(elegance-light)
 #+END_SRC
 * Multimedia
 * Fun
